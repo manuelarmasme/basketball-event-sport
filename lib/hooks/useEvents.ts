@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { addDoc, collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Event } from '../types/tournament';
+import { SportEvent } from '../types/tournament';
 
 export function useEvents() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<SportEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -17,7 +17,7 @@ export function useEvents() {
       q,
       { includeMetadataChanges: true },
       (querySnapshot) => {
-        const eventsData: Event[] = [];
+        const eventsData: SportEvent[] = [];
         
         querySnapshot.forEach((doc) => {
           const data = doc.data();
@@ -28,6 +28,10 @@ export function useEvents() {
             status: data.status,
             config: data.config,
             event_winner: data.event_winner,
+            createdAt: data.createdAt,
+            createdBy: data.createdBy,
+            updatedAt: data.updatedAt,
+            updatedBy: data.updatedBy,
           });
         });
         
@@ -45,4 +49,28 @@ export function useEvents() {
   }, []);
 
   return { events, loading, error };
+}
+
+// create a hook to create an event this hook recevied the event data 
+export function useCreateEvent() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  async function createEvent(partialEventData: Partial<SportEvent>) {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Aquí iría la lógica para crear el evento en Firestore
+      // Por ejemplo, usando addDoc de firebase/firestore
+      await addDoc(collection(db, 'tournaments'), partialEventData);
+
+      setLoading(false);
+    } catch (err) {
+      setError(err as Error);
+      setLoading(false);
+    }
+  }
+
+  return { createEvent, loading, error };
 }

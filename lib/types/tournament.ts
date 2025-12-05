@@ -3,6 +3,8 @@
  * Strict TypeScript interfaces for Firebase collections
  */
 
+import { Timestamp } from "firebase/firestore";
+
 /**
  * Tournament status lifecycle
  * - REGISTRATION: Accepting new participants
@@ -30,13 +32,17 @@ export interface EventConfig {
 /**
  * Main Event/Tournament entity
  */
-export interface Event {
+export interface SportEvent {
   id: string;
   name: string;
-  date: string; // ISO 8601 string
+  date: Timestamp; // ISO 8601 string
   status: TournamentStatus;
   config: EventConfig;
   event_winner: MatchPlayer | null;
+  createdAt: Timestamp; // ISO 8601 string
+  createdBy: string; // User ID of creator
+  updatedAt: Timestamp | null; // ISO 8601 string
+  updatedBy: string | null; // User ID of last updater
 }
 
 /**
@@ -46,6 +52,10 @@ export interface MatchPlayer {
   id: string;
   name: string;
   score?: number;
+  createdAt: Timestamp; // ISO 8601 string
+  createdBy: string; // User ID of creator
+  updatedAt: Timestamp | null; // ISO 8601 string
+  updatedBy: string | null; // User ID of last updater
 }
 
 /**

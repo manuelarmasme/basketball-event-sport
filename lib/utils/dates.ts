@@ -7,3 +7,7 @@ export function formatFirebaseTimestampToISO(timestamp: Timestamp): string {
         day: 'numeric',
     });
 }
+
+export function formatTimestapToFirebaseTimestamp(date: Date): Timestamp {
+    return Timestamp.fromDate(date);
+}
