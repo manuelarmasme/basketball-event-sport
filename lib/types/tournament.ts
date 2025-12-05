@@ -39,6 +39,7 @@ export interface SportEvent {
   status: TournamentStatus;
   config: EventConfig;
   event_winner: MatchPlayer | null;
+  googleSheetUrl: string | null;
   createdAt: Timestamp; // ISO 8601 string
   createdBy: string; // User ID of creator
   updatedAt: Timestamp | null; // ISO 8601 string

@@ -28,6 +28,7 @@ export function useEvents() {
             status: data.status,
             config: data.config,
             event_winner: data.event_winner,
+            googleSheetUrl: data.googleSheetUrl,
             createdAt: data.createdAt,
             createdBy: data.createdBy,
             updatedAt: data.updatedAt,
