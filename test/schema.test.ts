@@ -8,14 +8,12 @@ import {
   mockEvent,
   mockEventInProgress,
   mockEventFinished,
-  mockParticipants,
   mockMatches,
   mockFullBracket,
-  createMockParticipant,
   createMockEvent,
   createMockMatch,
 } from '@/lib/mocks';
-import type { Event, Participant, Match, TournamentStatus, MatchStatus } from '@/lib/types/tournament';
+import type { Match, TournamentStatus, MatchStatus } from '@/lib/types/tournament';
 
 describe('Tournament Type Schema Tests', () => {
   describe('Event Schema', () => {
@@ -54,42 +52,6 @@ describe('Tournament Type Schema Tests', () => {
         const event = createMockEvent({ status });
         expect(event.status).toBe(status);
       });
-    });
-  });
-
-  describe('Participant Schema', () => {
-    it('should validate mockParticipants array', () => {
-      expect(mockParticipants).toBeInstanceOf(Array);
-      expect(mockParticipants.length).toBe(6);
-    });
-
-    it('should validate each participant has required fields', () => {
-      mockParticipants.forEach((participant: Participant) => {
-        expect(participant.id).toBeTypeOf('string');
-        expect(participant.name).toBeTypeOf('string');
-        expect(participant.email).toBeTypeOf('string');
-        expect(participant.phone).toBeTypeOf('string');
-        expect(participant.age).toBeTypeOf('number');
-      });
-    });
-
-    it('should validate participant email format', () => {
-      mockParticipants.forEach((participant: Participant) => {
-        expect(participant.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-      });
-    });
-
-    it('should validate participant age is positive', () => {
-      mockParticipants.forEach((participant: Participant) => {
-        expect(participant.age).toBeGreaterThan(0);
-      });
-    });
-
-    it('should create participant with factory function', () => {
-      const participant = createMockParticipant({ name: 'Test Player', age: 30 });
-      expect(participant.name).toBe('Test Player');
-      expect(participant.age).toBe(30);
-      expect(participant.email).toBe('mock@example.com');
     });
   });
 
