@@ -20,6 +20,7 @@ import { formatTimestapToFirebaseTimestamp } from "@/lib/utils/dates";
 import { useCreateEvent } from "@/lib/hooks/useEvents";
 import { SportEvent } from "@/lib/types/tournament";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 
 type EventFormData = z.infer<typeof eventSchema>;
 
@@ -96,6 +97,9 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
         }
       }
     } catch (error) {
+      posthog.captureException(error, {
+        context: "CreateEventForm handleSubmit",
+      });
     } finally {
       setIsSubmitting(false);
     }
