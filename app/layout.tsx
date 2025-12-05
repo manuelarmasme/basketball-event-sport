@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/ui/navbar";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Reskata, Torneo 1vs1 de Basket",
-  description: "Organiza y gestiona torneos de baloncesto 1vs1 de manera sencilla y divertida.",
+  description:
+    "Organiza y gestiona torneos de baloncesto 1vs1 de manera sencilla y divertida.",
 };
 
 export default function RootLayout({
@@ -31,6 +33,7 @@ export default function RootLayout({
         <NavBar />
         <main className="min-h-screen mx-auto max-w-7xl p-8 text-gray-900 dark:text-gray-100 transition-colors duration-300">
           {children}
+          <Toaster />
         </main>
       </body>
     </html>

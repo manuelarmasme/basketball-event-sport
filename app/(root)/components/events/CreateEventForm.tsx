@@ -20,6 +20,8 @@ import { formatTimestapToFirebaseTimestamp } from "@/lib/utils/dates";
 import { useCreateEvent } from "@/lib/hooks/useEvents";
 import { SportEvent } from "@/lib/types/tournament";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
+import { toast } from "sonner";
 
 type EventFormData = z.infer<typeof eventSchema>;
 
@@ -34,6 +36,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
     name: "",
     date: undefined as unknown as Date,
     maxParticipants: 5,
+    googleSheetUrl: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -57,9 +60,6 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
       if (!formResult.success) {
         const flattened = z.flattenError(formResult.error);
         setErrors(flattened.fieldErrors);
-
-        console.log("errors", flattened.fieldErrors);
-        console.log("formData", formData);
       } else {
         const partialEventData: Partial<SportEvent> = {
           name: formResult.data.name,
@@ -68,14 +68,13 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
             maxParticipants: formResult.data.maxParticipants,
           },
           event_winner: null,
+          googleSheetUrl: formResult.data.googleSheetUrl,
           status: "registration",
           createdAt: formatTimestapToFirebaseTimestamp(new Date()),
           createdBy: "system",
           updatedAt: null,
           updatedBy: null,
         };
-
-        console.log("partialEventData", partialEventData);
 
         const eventId = await createEvent(partialEventData);
 
@@ -86,6 +85,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           name: "",
           date: undefined as unknown as Date,
           maxParticipants: 5,
+          googleSheetUrl: "",
         });
         setTime("12:00");
 
@@ -98,7 +98,11 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
         }
       }
     } catch (error) {
-      console.error("Error creating event:", error);
+      posthog.captureException(error, {
+        context: "CreateEventForm handleSubmit",
+      });
+
+      toast.error("Ocurrió un error al crear el evento. Inténtalo de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -114,6 +118,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           <Input
             id="name"
             name="name"
+            required
             onChange={(e) =>
               setFormData({ ...formData, name: e.target.value as string })
             }
@@ -133,6 +138,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           <Input
             id="participants"
             name="participants"
+            required
             type="number"
             placeholder="Ingresa la cantidad limite de participantes"
             onChange={(e) =>
@@ -214,6 +220,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           <Input
             type="time"
             id="time"
+            required
             value={time}
             onChange={(e) => {
               setTime(e.target.value);
@@ -233,6 +240,31 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           />
         </div>
 
+        <div className="w-full flex flex-col gap-2">
+          <Label htmlFor="googleSheetUrl" aria-label="googleSheetUrl">
+            Url de Google Sheet
+          </Label>
+          <Input
+            id="googleSheetUrl"
+            name="googleSheetUrl"
+            required
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                googleSheetUrl: e.target.value as string,
+              })
+            }
+            value={formData?.googleSheetUrl || ""}
+            type="text"
+            placeholder="Ingresa la URL de Google Sheet"
+            disabled={isSubmitting}
+          />
+
+          {errors.googleSheetUrl && errors.googleSheetUrl[0] && (
+            <ErrorMessage errorMessage={errors.googleSheetUrl[0]} />
+          )}
+        </div>
+
         <div className="flex w-full justify-end">
           <Button
             type="submit"
@@ -240,7 +272,8 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
               isSubmitting ||
               formData.name.length === 0 ||
               formData.maxParticipants <= 0 ||
-              !formData.date
+              !formData.date ||
+              formData.googleSheetUrl.length === 0
             }
             aria-label={isSubmitting ? "Creando evento..." : "Crear Evento"}
           >
