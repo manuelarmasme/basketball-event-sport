@@ -10,7 +10,7 @@
  * - IN_PROGRESS: Tournament actively running
  * - FINISHED: Tournament completed
  */
-export type TournamentStatus = 'REGISTRATION' | 'LOCKED' | 'IN_PROGRESS' | 'FINISHED';
+export type TournamentStatus = 'registration' | 'locked' | 'in_progress' | 'finished';
 
 /**
  * Match status lifecycle
