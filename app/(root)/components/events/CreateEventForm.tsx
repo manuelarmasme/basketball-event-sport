@@ -29,7 +29,7 @@ interface CreateEventFormProps {
 
 export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
   const router = useRouter();
-  
+
   const [formData, setFormData] = useState<EventFormData>({
     name: "",
     date: undefined as unknown as Date,
@@ -91,7 +91,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
 
         // Call success callback
         onSuccess?.();
-        
+
         // Navigate to the tournament page
         if (eventId) {
           router.push(`/${eventId}`);
