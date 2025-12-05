@@ -5,8 +5,11 @@
 
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import {
-  getFirestore,
   Firestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  CACHE_SIZE_UNLIMITED,
 } from 'firebase/firestore';
 import { CONSTANTS } from './config/constant';
 
@@ -42,4 +45,7 @@ if (!getApps().length) {
 }
 
 // Initialize Firestore
-export const db: Firestore = getFirestore(app);
+export const db: Firestore = initializeFirestore(app, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+  localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
+});
