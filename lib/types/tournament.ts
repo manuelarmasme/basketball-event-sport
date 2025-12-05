@@ -29,6 +29,10 @@ export interface EventConfig {
   maxParticipants: number;
 }
 
+export interface PreIncriptionPlayer {
+  name: string;
+}
+
 /**
  * Main Event/Tournament entity
  */
