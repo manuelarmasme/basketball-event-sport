@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { addDoc, collection, onSnapshot, query } from 'firebase/firestore';
+import { addDoc, collection, doc, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import { SportEvent } from '../types/tournament';
+import { CONSTANTS } from '../config/constant';
 
 export function useEvents() {
   const [events, setEvents] = useState<SportEvent[]>([]);
@@ -11,7 +12,7 @@ export function useEvents() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'tournaments'));
+    const q = query(collection(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS));
     
     const unsubscribe = onSnapshot(
       q,
@@ -60,7 +61,7 @@ export function useCreateEvent() {
     try {
       // Aquí iría la lógica para crear el evento en Firestore
       // Por ejemplo, usando addDoc de firebase/firestore
-      const docRef = await addDoc(collection(db, 'tournaments'), partialEventData);
+      const docRef = await addDoc(collection(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS), partialEventData);
       return docRef.id;
     } catch (err) {
       console.error('Error creating event:', err);
@@ -70,4 +71,23 @@ export function useCreateEvent() {
 
 
   return { createEvent };
+}
+
+// Create a similar hook for a single event
+export function useEvent(eventId: string) {
+  const [event, setEvent] = useState<SportEvent | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const docRef = doc(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS, eventId);
+    const unsubscribe = onSnapshot(docRef, (doc) => {
+      if (doc.exists()) {
+        setEvent({ id: doc.id, ...doc.data() } as SportEvent);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [eventId]);
+  
+  return { event, loading };
 }
