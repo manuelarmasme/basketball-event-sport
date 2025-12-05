@@ -1,3 +1,5 @@
+import { TournamentStatus } from "../types/tournament";
+
 export const CONSTANTS = {
     ENV: {
         NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -7,4 +9,15 @@ export const CONSTANTS = {
         NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
         NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!
     }
+}
+
+const statusEventMap: Record<TournamentStatus, { label: string, variant: "default" | "secondary" | "destructive" | "outline" }> = {
+    'registration': { label: 'En inscripción', variant: "secondary" },
+    'locked': { label: 'Por Iniciar', variant: "outline" },
+    'in_progress': { label: 'En Progreso', variant: "default" },
+    'finished': { label: 'Finalizado', variant: "secondary" }
+};
+
+export function getEventStatusValue(eventStatus: TournamentStatus): { label: string, variant: "default" | "secondary" | "destructive" | "outline" } {
+    return statusEventMap[eventStatus];
 }

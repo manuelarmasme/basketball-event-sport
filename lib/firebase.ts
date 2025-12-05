@@ -5,8 +5,10 @@
 
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import {
-  getFirestore,
   Firestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
 } from 'firebase/firestore';
 import { CONSTANTS } from './config/constant';
 
@@ -28,7 +30,7 @@ const requiredEnvVars = [
 ] as const;
 
 for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
+  if (!CONSTANTS.ENV[envVar]) {
     throw new Error(`Missing required environment variable: ${envVar}`);
   }
 }
@@ -42,4 +44,6 @@ if (!getApps().length) {
 }
 
 // Initialize Firestore
-export const db: Firestore = getFirestore(app);
+export const db: Firestore = initializeFirestore(app, {
+  localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
+});
