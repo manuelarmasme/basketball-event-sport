@@ -7,13 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Calendar, Clock, List } from "lucide-react";
 import { TournamentStatus } from "@/lib/types/tournament";
-import { formatFirebaseTimestampToISO } from "@/lib/utils/dates";
+import { formatFirebaseTimestampToShowDateTime } from "@/lib/utils/dates";
 import { Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getEventStatusValue } from "@/lib/config/constant";
+import { useRouter } from "next/navigation";
 
 export function EventsList() {
   const { events, loading, error } = useEvents();
+  const router = useRouter();
 
   if (loading) return <Loading message="Cargando eventos..." />;
 
@@ -71,12 +73,13 @@ export function EventsList() {
                     <TableRow
                       key={event.id}
                       className="cursor-pointer flex flex-row justify-between items-center"
+                      onClick={() => router.push(`/${event.id}`)}
                     >
                       <TableCell className="font-medium flex flex-col gap-2">
                         <h3 className="text-white text-xl">{event.name}</h3>
                         <span className="text-lg flex flex-row items-center gap-2 text-sm text-gray-400">
                           <Clock className="w-4 h-4" />
-                          {formatFirebaseTimestampToISO(
+                          {formatFirebaseTimestampToShowDateTime(
                             event.date as unknown as Timestamp
                           )}
                         </span>

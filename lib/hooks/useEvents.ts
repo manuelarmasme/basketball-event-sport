@@ -53,24 +53,20 @@ export function useEvents() {
 
 // create a hook to create an event this hook recevied the event data 
 export function useCreateEvent() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
 
-  async function createEvent(partialEventData: Partial<SportEvent>) {
-    setLoading(true);
-    setError(null);
 
+  async function createEvent(partialEventData: Partial<SportEvent>): Promise<string | null> {
     try {
       // Aquí iría la lógica para crear el evento en Firestore
       // Por ejemplo, usando addDoc de firebase/firestore
-      await addDoc(collection(db, 'tournaments'), partialEventData);
-
-      setLoading(false);
+      const docRef = await addDoc(collection(db, 'tournaments'), partialEventData);
+      return docRef.id;
     } catch (err) {
-      setError(err as Error);
-      setLoading(false);
+      console.error('Error creating event:', err);
+      return null;
     }
   }
 
-  return { createEvent, loading, error };
+
+  return { createEvent };
 }

@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { formatTimestapToFirebaseTimestamp } from "@/lib/utils/dates";
 import { useCreateEvent } from "@/lib/hooks/useEvents";
 import { SportEvent } from "@/lib/types/tournament";
+import { useRouter } from "next/navigation";
 
 type EventFormData = z.infer<typeof eventSchema>;
 
@@ -27,6 +28,8 @@ interface CreateEventFormProps {
 }
 
 export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
+  const router = useRouter();
+  
   const [formData, setFormData] = useState<EventFormData>({
     name: "",
     date: undefined as unknown as Date,
@@ -74,7 +77,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
 
         console.log("partialEventData", partialEventData);
 
-        await createEvent(partialEventData);
+        const eventId = await createEvent(partialEventData);
 
         setErrors({});
 
@@ -88,6 +91,11 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
 
         // Call success callback
         onSuccess?.();
+        
+        // Navigate to the tournament page
+        if (eventId) {
+          router.push(`/${eventId}`);
+        }
       }
     } catch (error) {
       console.error("Error creating event:", error);
