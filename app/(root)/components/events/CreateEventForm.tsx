@@ -58,9 +58,6 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
       if (!formResult.success) {
         const flattened = z.flattenError(formResult.error);
         setErrors(flattened.fieldErrors);
-
-        console.log("errors", flattened.fieldErrors);
-        console.log("formData", formData);
       } else {
         const partialEventData: Partial<SportEvent> = {
           name: formResult.data.name,
@@ -99,7 +96,6 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
         }
       }
     } catch (error) {
-      console.error("Error creating event:", error);
     } finally {
       setIsSubmitting(false);
     }
