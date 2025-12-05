@@ -1,5 +1,7 @@
 'use server'
 
+import { PreIncriptionPlayer } from "../types/tournament";
+
 interface GoogleSheetsResponse {
   range: string;
   majorDimension: string;
@@ -7,7 +9,7 @@ interface GoogleSheetsResponse {
 }
 
 // Cached function to fetch from Google Sheets
-async function fetchParticipantsInternal(googleSheetUrl: string): Promise<string[]> {
+async function fetchParticipantsInternal(googleSheetUrl: string): Promise<PreIncriptionPlayer[]> {
   const GOOGLE_SHEETS_API_KEY = process.env.GOOGLE_SHEETS_API_KEY;
   
   // Extract sheet ID from URL
@@ -20,17 +22,19 @@ async function fetchParticipantsInternal(googleSheetUrl: string): Promise<string
   );
   
   if (!response.ok) {
-    // throw new Error('Failed to fetch participants from Google Sheets');
     return [];
   }
   
   const data: GoogleSheetsResponse = await response.json();
 
-  
   // Filter out empty arrays and map to PreIncriptionPlayer objects
-  const participants: string[] = data.values ? data.values.flat() : [];
+  const participants: PreIncriptionPlayer[] = (data.values || [])
+    .filter((row: string[]) => row.length > 0 && row[0]?.trim())
+    .map((row: string[]) => ({
+      name: row[0].trim()
+    }));
     
-    console.log('data', participants);
+  console.log('Participants fetched:', participants);
   return participants;
 }
 
