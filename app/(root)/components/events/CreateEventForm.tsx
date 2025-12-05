@@ -21,6 +21,7 @@ import { useCreateEvent } from "@/lib/hooks/useEvents";
 import { SportEvent } from "@/lib/types/tournament";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
+import { toast } from "sonner";
 
 type EventFormData = z.infer<typeof eventSchema>;
 
@@ -100,6 +101,8 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
       posthog.captureException(error, {
         context: "CreateEventForm handleSubmit",
       });
+
+      toast.error("Ocurrió un error al crear el evento. Inténtalo de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
