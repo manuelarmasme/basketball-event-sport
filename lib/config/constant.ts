@@ -12,6 +12,9 @@ export const CONSTANTS = {
             NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY!,
             NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST!
         }
+    },
+    FIREBASE_COLLECTIONS: {
+        TOURNAMENTS: 'tournaments',
     }
 }
 
