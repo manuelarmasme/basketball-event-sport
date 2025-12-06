@@ -54,7 +54,12 @@ export default function InscriptionDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       {/* Dialog content goes here */}
       <DialogTrigger asChild>
-        <Button type="button" variant="secondary" size="sm">
+        <Button
+          type="button"
+          className="cursor-pointer"
+          variant="secondary"
+          size="sm"
+        >
           Inscribir
         </Button>
       </DialogTrigger>
@@ -72,7 +77,11 @@ export default function InscriptionDialog({
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" disabled={loading}>
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              disabled={loading}
+            >
               Cancelar
             </Button>
           </DialogClose>
@@ -80,6 +89,7 @@ export default function InscriptionDialog({
           <Button
             type="submit"
             variant="default"
+            className="cursor-pointer"
             disabled={loading}
             onClick={handleInscription}
           >

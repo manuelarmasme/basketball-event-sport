@@ -6,12 +6,12 @@ import TournamentDetailHeader from "./header";
 import { fetchParticipants } from "@/lib/actions/sheets";
 import { PreIncriptionPlayer } from "@/lib/types/tournament";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { Users, Plus } from "lucide-react";
+import { Users } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ListParticipants from "./ListParticipants";
 import { Badge } from "@/components/ui/badge";
+import CreateInscriptionDialog from "./CreateInscriptionDialog";
 
 export default function TournamentDetailContainer({
   tournamentId,
@@ -67,9 +67,8 @@ export default function TournamentDetailContainer({
                   </Badge>
                 )}
               </div>
-              <Button variant="outline" size="lg">
-                <Plus className="w-4 h-4" />
-              </Button>
+
+              <CreateInscriptionDialog />
             </CardHeader>
 
             <CardContent>
