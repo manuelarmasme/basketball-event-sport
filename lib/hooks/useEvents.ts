@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { addDoc, collection, doc, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
-import { SportEvent } from '../types/tournament';
+import { MatchPlayer, SportEvent } from '../types/tournament';
 import { CONSTANTS } from '../config/constant';
+import posthog from 'posthog-js';
 
 export function useEvents() {
   const [events, setEvents] = useState<SportEvent[]>([]);
@@ -13,13 +14,13 @@ export function useEvents() {
 
   useEffect(() => {
     const q = query(collection(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS));
-    
+
     const unsubscribe = onSnapshot(
       q,
       { includeMetadataChanges: true },
       (querySnapshot) => {
         const eventsData: SportEvent[] = [];
-        
+
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           eventsData.push({
@@ -36,7 +37,7 @@ export function useEvents() {
             updatedBy: data.updatedBy,
           });
         });
-        
+
         setEvents(eventsData);
         setLoading(false);
       },
@@ -53,7 +54,7 @@ export function useEvents() {
   return { events, loading, error };
 }
 
-// create a hook to create an event this hook recevied the event data 
+// create a hook to create an event this hook recevied the event data
 export function useCreateEvent() {
 
 
@@ -77,7 +78,7 @@ export function useCreateEvent() {
 export function useEvent(eventId: string) {
   const [event, setEvent] = useState<SportEvent | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const docRef = doc(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS, eventId);
     const unsubscribe = onSnapshot(docRef, (doc) => {
@@ -88,6 +89,57 @@ export function useEvent(eventId: string) {
     });
     return () => unsubscribe();
   }, [eventId]);
-  
+
   return { event, loading };
+}
+
+// create a hook to fetch the participants inside of a subcollection called participants that belongs to a tournament use realtime updates
+export function useParticipants(tournamentId: string) {
+  const [participants, setParticipants] = useState<MatchPlayer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS, tournamentId, CONSTANTS.FIREBASE_COLLECTIONS.PARTICIPANTS));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const participantsData: MatchPlayer[] = [];
+
+      querySnapshot.forEach((doc) => {
+        participantsData.push({ id: doc.id, ...doc.data() } as MatchPlayer);
+      });
+
+      setParticipants(participantsData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [tournamentId]);
+
+  return { participants, loading };
+}
+
+export function useCreateParticipant(tournamentId: string) {
+  async function createParticipant(partialParticipantData: Partial<MatchPlayer>): Promise<string | null> {
+    try {
+      const docRef = await addDoc(
+        collection(
+          db,
+          CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+          tournamentId,
+          CONSTANTS.FIREBASE_COLLECTIONS.PARTICIPANTS
+        ),
+        partialParticipantData
+      );
+      return docRef.id;
+    } catch (err) {
+      posthog.captureException(err, {
+        'error_location': 'useCreateParticipant',
+        'tournament_id': tournamentId
+      })
+
+      return null;
+    }
+  }
+
+  return { createParticipant };
 }

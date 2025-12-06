@@ -15,6 +15,8 @@ export const CONSTANTS = {
     },
     FIREBASE_COLLECTIONS: {
         TOURNAMENTS: 'tournaments',
+        PARTICIPANTS: 'participants',
+        MATCHES: 'matches'
     }
 }
 

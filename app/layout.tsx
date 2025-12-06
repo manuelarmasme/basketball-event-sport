@@ -31,7 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NavBar />
-        <main className="h-full mx-auto max-w-7xl p-8 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+        <main className="h-full mx-auto max-w-7xl p-4 text-gray-900 dark:text-gray-100 transition-colors duration-300">
           {children}
           <Toaster />
         </main>
