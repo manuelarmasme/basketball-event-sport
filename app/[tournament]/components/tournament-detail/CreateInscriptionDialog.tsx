@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateParticipant } from "@/lib/hooks/useEvents";
 import { newPlayerInscriptionSchema } from "@/lib/schemas/player";
+import { DialogDescription } from "@radix-ui/react-dialog";
 import { Plus } from "lucide-react";
 import { useParams } from "next/dist/client/components/navigation";
 import posthog from "posthog-js";
@@ -80,6 +81,11 @@ export default function CreateInscriptionDialog() {
           <DialogTitle className="text-2xl">
             Inscribir a un nuevo participante
           </DialogTitle>
+
+          <DialogDescription className="text-sm">
+            Completa el siguiente formulario para inscribir a un nuevo
+            participante en el torneo.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col w-full gap-4">
