@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { addDoc, collection, doc, onSnapshot, query } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
-import { SportEvent } from '../types/tournament';
+import { MatchPlayer, SportEvent } from '../types/tournament';
 import { CONSTANTS } from '../config/constant';
+import posthog from 'posthog-js';
 
 export function useEvents() {
   const [events, setEvents] = useState<SportEvent[]>([]);
@@ -13,13 +14,13 @@ export function useEvents() {
 
   useEffect(() => {
     const q = query(collection(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS));
-    
+
     const unsubscribe = onSnapshot(
       q,
       { includeMetadataChanges: true },
       (querySnapshot) => {
         const eventsData: SportEvent[] = [];
-        
+
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           eventsData.push({
@@ -36,7 +37,7 @@ export function useEvents() {
             updatedBy: data.updatedBy,
           });
         });
-        
+
         setEvents(eventsData);
         setLoading(false);
       },
@@ -53,7 +54,7 @@ export function useEvents() {
   return { events, loading, error };
 }
 
-// create a hook to create an event this hook recevied the event data 
+// create a hook to create an event this hook recevied the event data
 export function useCreateEvent() {
 
 
@@ -64,8 +65,10 @@ export function useCreateEvent() {
       const docRef = await addDoc(collection(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS), partialEventData);
       return docRef.id;
     } catch (err) {
-      console.error('Error creating event:', err);
-      return null;
+      posthog.captureException(err, {
+        'error_location': 'useCreateEvent'
+      })
+      throw new Error('Error creating event');
     }
   }
 
@@ -77,7 +80,7 @@ export function useCreateEvent() {
 export function useEvent(eventId: string) {
   const [event, setEvent] = useState<SportEvent | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const docRef = doc(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS, eventId);
     const unsubscribe = onSnapshot(docRef, (doc) => {
@@ -88,6 +91,79 @@ export function useEvent(eventId: string) {
     });
     return () => unsubscribe();
   }, [eventId]);
-  
+
   return { event, loading };
+}
+
+// create a hook to fetch the participants inside of a subcollection called participants that belongs to a tournament use realtime updates
+export function useParticipants(tournamentId: string) {
+  const [participants, setParticipants] = useState<MatchPlayer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS, tournamentId, CONSTANTS.FIREBASE_COLLECTIONS.PARTICIPANTS));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const participantsData: MatchPlayer[] = [];
+
+      querySnapshot.forEach((doc) => {
+        participantsData.push({ id: doc.id, ...doc.data() } as MatchPlayer);
+      });
+
+      setParticipants(participantsData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [tournamentId]);
+
+  return { participants, loading };
+}
+
+export function useCreateParticipant() {
+  async function createParticipant(partialParticipantData: Partial<MatchPlayer>, tournamentId: string): Promise<string | null> {
+    try {
+      const docRef = await addDoc(
+        collection(
+          db,
+          CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+          tournamentId,
+          CONSTANTS.FIREBASE_COLLECTIONS.PARTICIPANTS
+        ),
+        partialParticipantData
+      );
+
+      return docRef.id;
+    } catch (err) {
+
+      posthog.captureException(err, {
+        'error_location': 'useCreateParticipant',
+        'tournament_id': tournamentId
+      })
+
+      throw new Error('Error creating participant');
+    }
+  }
+
+  async function removeParticipant(participantId: string, tournamentId: string): Promise<void> {
+    try {
+      const docRef = doc(
+        db,
+        CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+        tournamentId,
+        CONSTANTS.FIREBASE_COLLECTIONS.PARTICIPANTS,
+        participantId
+      );
+      await deleteDoc(docRef);
+    } catch (err) {
+      posthog.captureException(err, {
+        'error_location': 'useRemoveParticipant',
+        'tournament_id': tournamentId,
+        'participant_id': participantId
+      });
+      throw new Error('Error removing participant');
+    }
+  }
+
+  return { createParticipant, removeParticipant };
 }
