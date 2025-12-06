@@ -4,14 +4,14 @@ import { Loading } from "@/components/ui/loading";
 import { useEvent, useParticipants } from "@/lib/hooks/useEvents";
 import TournamentDetailHeader from "./header";
 import { fetchParticipants } from "@/lib/actions/sheets";
-import { PreIncriptionPlayer } from "@/lib/types/tournament";
+import { MatchPlayer, PreIncriptionPlayer } from "@/lib/types/tournament";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Users } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import ListParticipants from "./ListParticipants";
 import { Badge } from "@/components/ui/badge";
 import CreateInscriptionDialog from "./CreateInscriptionDialog";
+import { Button } from "@/components/ui/button";
 
 export default function TournamentDetailContainer({
   tournamentId,
@@ -52,7 +52,7 @@ export default function TournamentDetailContainer({
         gobackUrl="/"
       />
 
-      <section className="w-full grid grid-cols-1 md:grid-cols-2">
+      <section className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
         {event?.googleSheetUrl && (
           <Card>
             <CardHeader className="text-primary font-bold text-xl flex justify-between items-center">
@@ -88,9 +88,22 @@ export default function TournamentDetailContainer({
           </Card>
         )}
 
-        <Card className="mt-8 md:mt-0 md:ml-8">
-          <CardHeader className="text-primary font-bold text-xl">
-            Inscritos
+        <Card>
+          <CardHeader className="text-primary font-bold text-xl flex justify-between items-center">
+            <div className="flex flex-row justify-center items-center">
+              Inscritos
+              {matchParticipants.length > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="ml-2 text-xs rounded-full h-5 min-w-5 "
+                >
+                  {matchParticipants.length}
+                </Badge>
+              )}
+            </div>
+            <Button disabled={matchParticipants.length === 0} variant="default">
+              Comenzar torneo
+            </Button>
           </CardHeader>
           <CardContent>
             {participantsLoading ? (
@@ -103,15 +116,11 @@ export default function TournamentDetailContainer({
                 <EmptyTitle>No hay inscritos</EmptyTitle>
               </Empty>
             ) : (
-              <ScrollArea className="h-64">
-                <ul className="flex flex-col gap-4">
-                  {matchParticipants.map((player) => (
-                    <li className="text-lg" key={player.id}>
-                      {player.name}
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea>
+              <ListParticipants
+                participants={matchParticipants as MatchPlayer[]}
+                filterPlaceholder="Filtrar Inscritos..."
+                removeInscription={true}
+              />
             )}
           </CardContent>
         </Card>

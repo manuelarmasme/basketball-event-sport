@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { addDoc, collection, doc, onSnapshot, query } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import { MatchPlayer, SportEvent } from '../types/tournament';
 import { CONSTANTS } from '../config/constant';
@@ -145,5 +145,25 @@ export function useCreateParticipant() {
     }
   }
 
-  return { createParticipant };
+  async function removeParticipant(participantId: string, tournamentId: string): Promise<void> {
+    try {
+      const docRef = doc(
+        db,
+        CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+        tournamentId,
+        CONSTANTS.FIREBASE_COLLECTIONS.PARTICIPANTS,
+        participantId
+      );
+      await deleteDoc(docRef);
+    } catch (err) {
+      posthog.captureException(err, {
+        'error_location': 'useRemoveParticipant',
+        'tournament_id': tournamentId,
+        'participant_id': participantId
+      });
+      throw new Error('Error removing participant');
+    }
+  }
+
+  return { createParticipant, removeParticipant };
 }

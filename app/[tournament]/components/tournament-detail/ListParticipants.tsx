@@ -11,11 +11,16 @@ import { MatchPlayer, PreIncriptionPlayer } from "@/lib/types/tournament";
 import FilterInput from "./FilterInput";
 import { useState } from "react";
 import InscriptionDialog from "./InscriptionDialog";
+import RemoveInscriptionDialog from "./RemoveInscriptionDialog";
 
 export default function ListParticipants({
   participants,
+  filterPlaceholder = "Filtrar participantes...",
+  removeInscription,
 }: {
   participants: MatchPlayer[] | PreIncriptionPlayer[];
+  filterPlaceholder?: string;
+  removeInscription?: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -28,7 +33,7 @@ export default function ListParticipants({
       <FilterInput
         value={searchQuery}
         onChange={setSearchQuery}
-        placeholder="Filtrar participantes..."
+        placeholder={filterPlaceholder}
       />
 
       <ScrollArea className="h-64">
@@ -38,7 +43,16 @@ export default function ListParticipants({
               <ItemTitle>{player.name}</ItemTitle>
             </ItemContent>
             <ItemActions>
-              <InscriptionDialog participantName={player.name as string} />
+              {!removeInscription && (
+                <InscriptionDialog participantName={player.name as string} />
+              )}
+
+              {removeInscription && (
+                <RemoveInscriptionDialog
+                  participantName={player.name as string}
+                  participantId={(player as MatchPlayer).id}
+                />
+              )}
             </ItemActions>
           </Item>
         ))}

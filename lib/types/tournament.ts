@@ -90,3 +90,4 @@ export function isMatchReady(match: Match): boolean {
 export function isMatchCompleted(match: Match): match is Match & { winnerId: string } {
   return match.status === 'COMPLETED' && match.winnerId !== null;
 }
+
