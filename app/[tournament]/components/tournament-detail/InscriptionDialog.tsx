@@ -24,14 +24,12 @@ export default function InscriptionDialog({
 }) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const { createParticipant } = useCreateParticipant();
   const params = useParams();
 
   const handleInscription = async () => {
     setLoading(true);
-    setError(null);
 
     try {
       const tournamentId = params.tournament as string;

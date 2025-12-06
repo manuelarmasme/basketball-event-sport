@@ -65,8 +65,10 @@ export function useCreateEvent() {
       const docRef = await addDoc(collection(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS), partialEventData);
       return docRef.id;
     } catch (err) {
-      console.error('Error creating event:', err);
-      return null;
+      posthog.captureException(err, {
+        'error_location': 'useCreateEvent'
+      })
+      throw new Error('Error creating event');
     }
   }
 
@@ -130,8 +132,6 @@ export function useCreateParticipant() {
         ),
         partialParticipantData
       );
-
-      console.log('partialParticipantData', partialParticipantData, docRef);
 
       return docRef.id;
     } catch (err) {

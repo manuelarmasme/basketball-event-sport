@@ -24,11 +24,17 @@ export default function TournamentDetailContainer({
   const [participants, setParticipants] = useState<PreIncriptionPlayer[]>([]);
   const [isPending, startTransition] = useTransition();
 
+  const subscribedNames = new Set(
+    matchParticipants.map((p) => p.name.toLowerCase())
+  );
+  const availableParticipants = participants.filter(
+    (p) => !subscribedNames.has(p.name.toLowerCase())
+  );
+
   useEffect(() => {
     if (event?.googleSheetUrl) {
       startTransition(async () => {
         const data = await fetchParticipants(event.googleSheetUrl as string);
-        console.log("Data received in client:", data);
         setParticipants(data);
       });
     }
@@ -52,12 +58,12 @@ export default function TournamentDetailContainer({
             <CardHeader className="text-primary font-bold text-xl flex justify-between items-center">
               <div className="flex flex-row justify-center items-center">
                 Participantes Pre-inscritos
-                {participants.length > 0 && (
+                {availableParticipants.length > 0 && (
                   <Badge
                     variant="secondary"
                     className="ml-2 text-xs rounded-full h-5 min-w-5 "
                   >
-                    {participants.length}
+                    {availableParticipants.length}
                   </Badge>
                 )}
               </div>
@@ -77,7 +83,7 @@ export default function TournamentDetailContainer({
                   <EmptyTitle>No hay participantes</EmptyTitle>
                 </Empty>
               ) : (
-                <ListParticipants participants={participants} />
+                <ListParticipants participants={availableParticipants} />
               )}
             </CardContent>
           </Card>

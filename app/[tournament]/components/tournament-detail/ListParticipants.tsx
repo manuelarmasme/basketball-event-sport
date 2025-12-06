@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   Item,
   ItemActions,
@@ -40,9 +39,6 @@ export default function ListParticipants({
             </ItemContent>
             <ItemActions>
               <InscriptionDialog participantName={player.name as string} />
-              {/* <Button variant="secondary" size="sm">
-                Inscribir
-              </Button> */}
             </ItemActions>
           </Item>
         ))}
