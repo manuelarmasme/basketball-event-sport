@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MatchPlayer, PreIncriptionPlayer } from "@/lib/types/tournament";
 import FilterInput from "./FilterInput";
 import { useState } from "react";
+import InscriptionDialog from "./InscriptionDialog";
 
 export default function ListParticipants({
   participants,
@@ -38,9 +39,10 @@ export default function ListParticipants({
               <ItemTitle>{player.name}</ItemTitle>
             </ItemContent>
             <ItemActions>
-              <Button variant="secondary" size="sm">
+              <InscriptionDialog participantName={player.name as string} />
+              {/* <Button variant="secondary" size="sm">
                 Inscribir
-              </Button>
+              </Button> */}
             </ItemActions>
           </Item>
         ))}

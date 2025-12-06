@@ -118,8 +118,8 @@ export function useParticipants(tournamentId: string) {
   return { participants, loading };
 }
 
-export function useCreateParticipant(tournamentId: string) {
-  async function createParticipant(partialParticipantData: Partial<MatchPlayer>): Promise<string | null> {
+export function useCreateParticipant() {
+  async function createParticipant(partialParticipantData: Partial<MatchPlayer>, tournamentId: string): Promise<string | null> {
     try {
       const docRef = await addDoc(
         collection(
@@ -130,14 +130,18 @@ export function useCreateParticipant(tournamentId: string) {
         ),
         partialParticipantData
       );
+
+      console.log('partialParticipantData', partialParticipantData, docRef);
+
       return docRef.id;
     } catch (err) {
+
       posthog.captureException(err, {
         'error_location': 'useCreateParticipant',
         'tournament_id': tournamentId
       })
 
-      return null;
+      throw new Error('Error creating participant');
     }
   }
 
