@@ -71,7 +71,12 @@ export default function CreateInscriptionDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="lg">
+        <Button
+          variant="outline"
+          size="lg"
+          className="cursor-pointer"
+          aria-label="Inscribir participante"
+        >
           <Plus className="w-4 h-4" />
         </Button>
       </DialogTrigger>
