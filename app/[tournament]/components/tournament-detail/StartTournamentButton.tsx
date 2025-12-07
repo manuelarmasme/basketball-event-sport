@@ -17,12 +17,17 @@ export default function StartTournamentButton({
   participants,
   tournamentStatus,
 }: StartTournamentButtonProps) {
-  const { startTournament, loading: tournamentLoading, getTournamentStats } =
-    useTournamentBracket();
+  const {
+    startTournament,
+    loading: tournamentLoading,
+    getTournamentStats,
+  } = useTournamentBracket();
 
   const handleStartTournament = async () => {
     if (participants.length < 2) {
-      toast.error("Se necesitan al menos 2 participantes para iniciar el torneo");
+      toast.error(
+        "Se necesitan al menos 2 participantes para iniciar el torneo"
+      );
       return;
     }
 
@@ -31,7 +36,11 @@ export default function StartTournamentButton({
 
       if (stats) {
         toast.info(
-          `Se generará un torneo con ${stats.totalMatches} partidos. ${stats.byeCount > 0 ? `${stats.byeCount} jugadores pasarán automáticamente a la siguiente ronda.` : ""}`
+          `Se generará un torneo con ${stats.totalMatches} partidos. ${
+            stats.byeCount > 0
+              ? `${stats.byeCount} jugadores pasarán automáticamente a la siguiente ronda.`
+              : ""
+          }`
         );
       }
 
