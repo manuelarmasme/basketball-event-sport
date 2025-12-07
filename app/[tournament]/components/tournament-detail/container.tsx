@@ -5,13 +5,9 @@ import { useEvent, useParticipants } from "@/lib/hooks/useEvents";
 import TournamentDetailHeader from "./header";
 import { fetchParticipants } from "@/lib/actions/sheets";
 import { MatchPlayer, PreIncriptionPlayer } from "@/lib/types/tournament";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { Users } from "lucide-react";
-import ListParticipants from "./ListParticipants";
-import { Badge } from "@/components/ui/badge";
 import CreateInscriptionDialog from "./CreateInscriptionDialog";
 import StartTournamentButton from "./StartTournamentButton";
+import ParticipantsListCard from "./ParticipantsCard";
 
 export default function TournamentDetailContainer({
   tournamentId,
@@ -23,6 +19,9 @@ export default function TournamentDetailContainer({
     useParticipants(tournamentId);
   const [participants, setParticipants] = useState<PreIncriptionPlayer[]>([]);
   const [isPending, startTransition] = useTransition();
+  const [isCreatingTournament, setIsCreatingTournament] = useState(false);
+
+  const canManageInscriptions = event?.status === "registration";
 
   const subscribedNames = new Set(
     matchParticipants.map((p) => p.name.toLowerCase())
@@ -44,87 +43,82 @@ export default function TournamentDetailContainer({
     return <Loading message="Cargando datos de evento..." />;
   }
 
+  if (isCreatingTournament) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="text-center space-y-3">
+            <h3 className="text-2xl font-semibold">Creando torneo...</h3>
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                <span>Creando partidos...</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <div
+                  className="w-2 h-2 bg-primary rounded-full animate-pulse"
+                  style={{ animationDelay: "0.2s" }}
+                />
+                <span>Asignando participantes...</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <div
+                  className="w-2 h-2 bg-primary rounded-full animate-pulse"
+                  style={{ animationDelay: "0.4s" }}
+                />
+                <span>Configurando rondas...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <TournamentDetailHeader
         name={event?.name || ""}
         status={event?.status || ""}
         gobackUrl="/"
+        matchesUrl={`/${tournamentId}/matches`}
       />
 
       <section className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
         {event?.googleSheetUrl && (
-          <Card>
-            <CardHeader className="text-primary font-bold text-xl flex justify-between items-center">
-              <div className="flex flex-row justify-center items-center">
-                Participantes Pre-inscritos
-                {availableParticipants.length > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-2 text-xs rounded-full h-5 min-w-5 "
-                  >
-                    {availableParticipants.length}
-                  </Badge>
-                )}
-              </div>
-
-              <CreateInscriptionDialog />
-            </CardHeader>
-            <CardContent>
-              {isPending ? (
-                <Loading message="Cargando participantes..." />
-              ) : participants.length === 0 ? (
-                <Empty>
-                  <EmptyMedia>
-                    <Users className="w-16 h-16 text-muted-foreground" />
-                  </EmptyMedia>
-                  <EmptyTitle>No hay participantes</EmptyTitle>
-                </Empty>
-              ) : (
-                <ListParticipants participants={availableParticipants} />
-              )}
-            </CardContent>
-          </Card>
+          <ParticipantsListCard
+            cardTitle="Pre-inscritos"
+            participants={availableParticipants}
+            emptyDescription="No hay participantes pre-inscritos"
+            loadingMessage="Cargando participantes..."
+            canManageInscriptions={canManageInscriptions}
+            eventStatus={event?.status || ""}
+            isPending={isPending}
+            headerAction={<CreateInscriptionDialog />}
+            showRemoveButton={false}
+          />
         )}
 
-        <Card>
-          <CardHeader className="text-primary font-bold text-xl flex justify-between items-center">
-            <div className="flex flex-row justify-center items-center">
-              Inscritos
-              {matchParticipants.length > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="ml-2 text-xs rounded-full h-5 min-w-5 "
-                >
-                  {matchParticipants.length}
-                </Badge>
-              )}
-            </div>
+        <ParticipantsListCard
+          cardTitle="Inscritos"
+          participants={matchParticipants}
+          emptyDescription="No hay inscritos"
+          loadingMessage="Cargando inscritos..."
+          canManageInscriptions={canManageInscriptions}
+          eventStatus={event?.status || ""}
+          isPending={participantsLoading}
+          filterPlaceholder="Filtrar Inscritos..."
+          headerAction={
             <StartTournamentButton
               tournamentId={tournamentId}
               participants={matchParticipants as MatchPlayer[]}
               tournamentStatus={event?.status || ""}
+              onStartCreating={() => setIsCreatingTournament(true)}
             />
-          </CardHeader>
-          <CardContent>
-            {participantsLoading ? (
-              <Loading message="Cargando inscritos..." />
-            ) : matchParticipants.length === 0 ? (
-              <Empty>
-                <EmptyMedia>
-                  <Users className="w-16 h-16 text-muted-foreground" />
-                </EmptyMedia>
-                <EmptyTitle>No hay inscritos</EmptyTitle>
-              </Empty>
-            ) : (
-              <ListParticipants
-                participants={matchParticipants as MatchPlayer[]}
-                filterPlaceholder="Filtrar Inscritos..."
-                removeInscription={true}
-              />
-            )}
-          </CardContent>
-        </Card>
+          }
+          showRemoveButton={true}
+        />
       </section>
     </>
   );

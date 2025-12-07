@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Match } from "@/lib/types/tournament";
 import { cn } from "@/lib/utils";
-import { Trophy, Clock, CheckCircle2 } from "lucide-react";
+import { Trophy, Clock, CheckCircle2, Ban } from "lucide-react";
 import { useState } from "react";
 import UpdateMatchDialog from "./UpdateMatchDialog";
 import ParticipantNameScore from "./ParticipantNameScore";
@@ -30,6 +30,7 @@ export default function MatchCard({
   const player2 = match.players[1];
   const isCompleted = match.status === "COMPLETED";
   const isReady = match.status === "READY";
+  const hasDisqualification = player1?.disqualified || player2?.disqualified;
 
   const getStatusColor = () => {
     switch (match.status) {
@@ -76,15 +77,24 @@ export default function MatchCard({
         onClick={() => setDialogOpen(true)}
       >
         <CardHeader className="pb-3 space-y-0">
-          <Badge
-            variant="outline"
-            className={cn("w-fit text-xs", getStatusColor())}
-          >
-            <span className="flex items-center gap-1">
-              {getStatusIcon()}
-              {getStatusLabel()}
-            </span>
-          </Badge>
+          <div className="flex items-center justify-between gap-2">
+            <Badge
+              variant="outline"
+              className={cn("w-fit text-xs", getStatusColor())}
+            >
+              <span className="flex items-center gap-1">
+                {getStatusIcon()}
+                {getStatusLabel()}
+              </span>
+            </Badge>
+
+            {hasDisqualification && (
+              <Badge variant="destructive" className="text-xs">
+                <Ban className="w-3 h-3 mr-1" />
+                DQ
+              </Badge>
+            )}
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-2">
