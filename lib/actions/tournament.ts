@@ -190,22 +190,26 @@ export async function updateMatchWinner(
   const batch = writeBatch(db);
 
   // 1. Update current match with winner and scores
+  // Create a copy of players array with updated scores
+  const updatedPlayers = [...currentMatch.players];
+
+  // Update scores if provided
+  if (scores) {
+    if (scores.player1Score !== undefined && updatedPlayers[0]) {
+      updatedPlayers[0] = { ...updatedPlayers[0], score: scores.player1Score };
+    }
+    if (scores.player2Score !== undefined && updatedPlayers[1]) {
+      updatedPlayers[1] = { ...updatedPlayers[1], score: scores.player2Score };
+    }
+  }
+
   const updateData: UpdateData<DocumentData> = {
     winnerId,
     status: 'COMPLETED',
     updatedAt: Timestamp.now(),
     updatedBy: userId,
+    players: updatedPlayers, // Update entire array instead of using dot notation
   };
-
-  // Update scores if provided
-  if (scores) {
-    if (scores.player1Score !== undefined && currentMatch.players[0]) {
-      updateData['players.0.score'] = scores.player1Score;
-    }
-    if (scores.player2Score !== undefined && currentMatch.players[1]) {
-      updateData['players.1.score'] = scores.player2Score;
-    }
-  }
 
   batch.update(currentMatchRef, updateData);
 
@@ -220,28 +224,34 @@ export async function updateMatchWinner(
     );
 
     // Update the appropriate player slot in the next match
-    const playerSlotKey = `players.${currentMatch.nextMatchSlot}`;
+    // Read next match first to avoid overwriting the entire players array
+    const nextMatchSnap = await getDoc(nextMatchRef);
+    if (!nextMatchSnap.exists()) {
+      throw new Error('Next match not found');
+    }
+
+    const nextMatch = nextMatchSnap.data() as Match;
+
+    // Normalize players array (Firestore might not preserve array structure)
+    const currentPlayers = Array.isArray(nextMatch.players)
+      ? nextMatch.players
+      : [nextMatch.players?.[0] || null, nextMatch.players?.[1] || null];
+
+    const updatedNextPlayers = [...currentPlayers];
+    updatedNextPlayers[currentMatch.nextMatchSlot] = winner;
+
     const nextMatchUpdate: UpdateData<DocumentData> = {
-      [playerSlotKey]: winner,
+      players: updatedNextPlayers, // Update entire array
       updatedAt: Timestamp.now(),
       updatedBy: userId,
     };
 
-    batch.update(nextMatchRef, nextMatchUpdate);
-
-    // Check if next match should be marked as READY
-    // We need to read the next match to see if both players are now assigned
-    const nextMatchSnap = await getDoc(nextMatchRef);
-    if (nextMatchSnap.exists()) {
-      const nextMatch = nextMatchSnap.data() as Match;
-      const updatedPlayers = [...nextMatch.players];
-      updatedPlayers[currentMatch.nextMatchSlot] = winner;
-
-      // If both player slots are now filled, mark as READY
-      if (updatedPlayers[0] && updatedPlayers[1]) {
-        batch.update(nextMatchRef, { status: 'READY' });
-      }
+    // If both player slots are now filled, mark as READY
+    if (updatedNextPlayers[0] && updatedNextPlayers[1]) {
+      nextMatchUpdate.status = 'READY';
     }
+
+    batch.update(nextMatchRef, nextMatchUpdate);
   }
 
   await batch.commit();

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Trophy, Clock, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import UpdateMatchDialog from "./UpdateMatchDialog";
+import ParticipantNameScore from "./ParticipantNameScore";
 
 interface MatchCardProps {
   match: Match;
@@ -57,7 +58,7 @@ export default function MatchCard({
       case "COMPLETED":
         return "Finalizado";
       case "READY":
-        return "Listo";
+        return "Por jugar";
       case "WAITING":
         return "Esperando";
     }
@@ -88,34 +89,12 @@ export default function MatchCard({
 
         <CardContent className="space-y-2">
           {/* Player 1 */}
-          <div
-            className={cn(
-              "flex items-center justify-between p-3 rounded-lg transition-colors",
-              player1
-                ? isCompleted && match.winnerId === player1.id
-                  ? "bg-green-500/10 ring-2 ring-green-500/30"
-                  : "bg-muted/50"
-                : "bg-muted/30",
-              !player1 && "text-muted-foreground"
-            )}
-          >
-            <div className="flex items-center gap-2 flex-1">
-              {isCompleted && match.winnerId === player1?.id && (
-                <Trophy className="w-4 h-4 text-green-600" />
-              )}
-              <span
-                className={cn(
-                  "font-medium truncate",
-                  !player1 && "text-sm italic"
-                )}
-              >
-                {player1 ? player1.name : "Por definir"}
-              </span>
-            </div>
-            {player1?.score !== undefined && (
-              <span className="text-lg font-bold ml-2">{player1.score}</span>
-            )}
-          </div>
+
+          <ParticipantNameScore
+            player={player1}
+            isCompleted={isCompleted}
+            match={match}
+          />
 
           {/* VS Divider */}
           <div className="flex items-center justify-center">
@@ -125,31 +104,11 @@ export default function MatchCard({
           </div>
 
           {/* Player 2 */}
-          <div
-            className={cn(
-              "flex items-center justify-between p-3 rounded-lg transition-colors",
-              player2
-                ? isCompleted && match.winnerId === player2.id
-                  ? "bg-green-500/10 ring-2 ring-green-500/30"
-                  : "bg-muted/50"
-                : "bg-muted/30",
-              !player2 && "text-muted-foreground"
-            )}
-          >
-            <div className="flex items-center gap-2 flex-1">
-              {isCompleted && match.winnerId === player2?.id && (
-                <Trophy className="w-4 h-4 text-green-600" />
-              )}
-              <span
-                className={cn(
-                  "font-medium truncate",
-                  !player2 && "text-sm italic"
-                )}
-              >
-                {player2 ? player2.name : "Por definir"}
-              </span>
-            </div>
-          </div>
+          <ParticipantNameScore
+            player={player2}
+            isCompleted={isCompleted}
+            match={match}
+          />
         </CardContent>
       </Card>
 
