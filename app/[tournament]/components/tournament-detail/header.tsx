@@ -39,7 +39,10 @@ export default function TournamentDetailHeader({
             <div className="flex flex-col">
               <h1 className="text-3xl font-bold">{name}</h1>
 
-              <Badge className="mt-2 text-xs w-fit" variant={statusInfo.variant}>
+              <Badge
+                className="mt-2 text-xs w-fit"
+                variant={statusInfo.variant}
+              >
                 {statusInfo.label}
               </Badge>
             </div>
