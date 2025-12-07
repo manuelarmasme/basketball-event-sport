@@ -176,47 +176,52 @@ describe('generateTournamentBracket', () => {
     const participants = createMockParticipants(5);
     const matches = generateTournamentBracket(participants);
 
-    // 5 participants in 8-bracket = 7 total matches
-    expect(matches).toHaveLength(7);
-
-    // First round: 4 matches
+    // 5 participants with 3 byes
+    // First round: 1 match only (2 players compete)
+    // 3 bye players skip directly to Round 2
+    // Total matches in bracket: 1 (round 1) + 2 (round 2) + 1 (final) = 4 matches
     const round0Matches = matches.filter((m) => m.roundIndex === 0);
-    expect(round0Matches).toHaveLength(4);
+    const round1Matches = matches.filter((m) => m.roundIndex === 1);
+    const round2Matches = matches.filter((m) => m.roundIndex === 2);
 
-    // Count READY vs COMPLETED matches in first round
-    const readyMatches = round0Matches.filter((m) => m.status === 'READY');
-    const completedMatches = round0Matches.filter((m) => m.status === 'COMPLETED');
+    // Only 1 first-round match created (no walkover matches)
+    expect(round0Matches).toHaveLength(1);
+    expect(round1Matches).toHaveLength(2); // Semi Finals
+    expect(round2Matches).toHaveLength(1); // Final
 
-    // With 5 participants and 3 byes:
-    // - 2 players compete in first round (1 READY match)
-    // - 3 byes = 3 COMPLETED matches with one player
-    expect(readyMatches).toHaveLength(1);
-    expect(completedMatches).toHaveLength(3);
+    // First round match should be READY
+    expect(round0Matches[0].status).toBe('READY');
+    expect(round0Matches[0].players[0]).not.toBeNull();
+    expect(round0Matches[0].players[1]).not.toBeNull();
 
-    // Completed matches should have a winnerId
-    completedMatches.forEach((match) => {
-      expect(match.winnerId).not.toBeNull();
-      const playerCount = [match.players[0], match.players[1]].filter(
-        (p) => p !== null
-      ).length;
-      expect(playerCount).toBe(1); // Only one player in bye match
+    // Round 2 should have bye players already placed
+    let byePlayersInRound2 = 0;
+    round1Matches.forEach((match) => {
+      if (match.players[0] !== null) byePlayersInRound2++;
+      if (match.players[1] !== null) byePlayersInRound2++;
     });
+    // Should have 3 bye players in Round 2 (waiting for 1st round winner)
+    expect(byePlayersInRound2).toBe(3);
   });
 
   it('should generate bracket for 13 participants', () => {
     const participants = createMockParticipants(13);
     const matches = generateTournamentBracket(participants);
 
-    // 13 participants in 16-bracket = 15 total matches
-    expect(matches).toHaveLength(15);
-
+    // 13 participants with 3 byes
+    // First round: 5 matches (10 players compete)
+    // Round 2: 8 matches (5 winners + 3 bye players)
     const round0Matches = matches.filter((m) => m.roundIndex === 0);
-    const readyMatches = round0Matches.filter((m) => m.status === 'READY');
-    const completedMatches = round0Matches.filter((m) => m.status === 'COMPLETED');
 
-    // 13 participants with 3 byes = 10 play in first round (5 matches)
-    expect(readyMatches).toHaveLength(5);
-    expect(completedMatches).toHaveLength(3);
+    // Only 5 first-round matches (no walkover matches)
+    expect(round0Matches).toHaveLength(5);
+
+    // All first-round matches should be READY
+    round0Matches.forEach((match) => {
+      expect(match.status).toBe('READY');
+      expect(match.players[0]).not.toBeNull();
+      expect(match.players[1]).not.toBeNull();
+    });
   });
 
   it('should connect matches correctly (nextMatchId)', () => {
@@ -254,8 +259,20 @@ describe('generateTournamentBracket', () => {
     const participants = createMockParticipants(74);
     const matches = generateTournamentBracket(participants);
 
-    // 74 participants in 128-bracket = 127 total matches
-    expect(matches).toHaveLength(127);
+    // 74 participants with 54 byes
+    // First round: 10 matches (20 players compete)
+    // 54 players skip directly to Round 2
+    const round0Matches = matches.filter((m) => m.roundIndex === 0);
+
+    // Only 10 first-round matches created
+    expect(round0Matches).toHaveLength(10);
+
+    // All should be READY
+    round0Matches.forEach((match) => {
+      expect(match.status).toBe('READY');
+      expect(match.players[0]).not.toBeNull();
+      expect(match.players[1]).not.toBeNull();
+    });
 
     // Verify all participants are assigned
     const allPlayers = matches.flatMap((m) => m.players).filter((p) => p !== null);

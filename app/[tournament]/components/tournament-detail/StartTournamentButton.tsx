@@ -5,6 +5,8 @@ import { useTournamentBracket } from "@/lib/hooks/useEvents";
 import { MatchPlayer } from "@/lib/types/tournament";
 import posthog from "posthog-js";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { Trophy } from "lucide-react";
 
 interface StartTournamentButtonProps {
   tournamentId: string;
@@ -17,6 +19,7 @@ export default function StartTournamentButton({
   participants,
   tournamentStatus,
 }: StartTournamentButtonProps) {
+  const router = useRouter();
   const {
     startTournament,
     loading: tournamentLoading,
@@ -49,6 +52,11 @@ export default function StartTournamentButton({
       toast.success(
         `¡Torneo iniciado! Se crearon ${result.matchCount} partidos.`
       );
+
+      // Navigate to matches page after tournament starts
+      setTimeout(() => {
+        router.push(`/${tournamentId}/matches`);
+      }, 1000);
     } catch (error) {
       posthog.captureException(error, {
         error_location: "StartTournamentButton_handleStartTournament",
@@ -58,6 +66,21 @@ export default function StartTournamentButton({
     }
   };
 
+  const handleViewMatches = () => {
+    router.push(`/${tournamentId}/matches`);
+  };
+
+  // If tournament is in progress or finished, show "Ver Partidos" button
+  if (tournamentStatus === "in_progress" || tournamentStatus === "finished") {
+    return (
+      <Button variant="default" onClick={handleViewMatches} className="gap-2">
+        <Trophy className="w-4 h-4" />
+        Ver Partidos
+      </Button>
+    );
+  }
+
+  // Otherwise, show "Comenzar torneo" button
   return (
     <Button
       disabled={

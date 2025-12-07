@@ -10,12 +10,17 @@ import { Match, MatchPlayer } from '../types/tournament';
  * Uses standard seeding with byes for non-power-of-2 participant counts
  *
  * @param participants - Array of enrolled players
- * @returns Array of Match objects representing the complete bracket
+ * @returns Array of Match objects representing the complete bracket (only matches with 2 players)
  *
  * @example
+ * // 15 participants → 16-slot bracket
+ * // - First round: 7 matches (14 players compete)
+ * // - Byes: 1 player skips to Round 2 (no walkover match created)
+ * // - Round 2: 8 players (7 winners + 1 bye)
+ *
  * // 74 participants → 128-slot bracket
  * // - First round: 10 matches (20 players compete)
- * // - Byes: 54 players auto-advance to round 2
+ * // - Byes: 54 players skip to Round 2 (no walkover matches)
  * // - Round 2: 64 players (10 winners + 54 byes)
  *
  * // 8 participants → 8-slot bracket (perfect power of 2)
@@ -78,10 +83,19 @@ export function generateTournamentBracket(
     }
   }
 
-  // 6. Assign players to first round
+  // 6. Assign players to first round (and bye players to round 2)
   assignPlayersToFirstRound(matches, shuffledParticipants, byeCount);
 
-  return matches;
+  // 7. Filter out first-round matches that have no players (bye slots)
+  // This creates a cleaner bracket without empty "walkover" matches
+  const filteredMatches = matches.filter((match) => {
+    // Keep all non-first-round matches
+    if (match.roundIndex > 0) return true;
+    // Only keep first-round matches that have both players assigned
+    return match.players[0] !== null && match.players[1] !== null;
+  });
+
+  return filteredMatches;
 }
 
 /**
@@ -124,12 +138,17 @@ function getRoundName(roundIndex: number, totalRounds: number): string {
 
 /**
  * Assign shuffled players to first round matches
- * Players with byes get walkover matches (COMPLETED with one player)
+ * Players with byes skip the first round entirely and are placed directly in Round 2
+ *
+ * Strategy for 15 participants in 16-bracket:
+ * - 1 bye player is placed directly in Quarter Finals (Round 2)
+ * - 14 players compete in 7 first-round matches (READY)
+ * - No walkover matches are created (cleaner UI)
  *
  * Strategy for 5 participants in 8-bracket:
- * - 3 byes = 3 first-round matches with one player (COMPLETED, winner auto-advances)
- * - 2 players compete in 1 match (READY)
- * - Round 2 will have 4 players (3 bye winners + 1 match winner)
+ * - 3 bye players are placed directly in Round 2
+ * - 2 players compete in 1 first-round match (READY)
+ * - Round 2 will have 4 players (3 byes + 1 match winner)
  *
  * @param matches - All bracket matches
  * @param participants - Shuffled participant list
@@ -156,20 +175,18 @@ function assignPlayersToFirstRound(
     match.status = 'READY';
   }
 
-  // Then, assign bye matches (one player each, auto-win)
+  // Then, place bye players directly in Round 2 (skip first round matches)
+  // This creates a cleaner bracket without "walkover" matches
   for (let i = actualMatches; i < firstRoundMatches.length && participantIndex < participants.length; i++) {
-    const match = firstRoundMatches[i];
-    match.players[0] = participants[participantIndex++];
-    match.players[1] = null;
-    match.status = 'COMPLETED';
-    match.winnerId = match.players[0].id;
+    const byePlayer = participants[participantIndex++];
+    const firstRoundMatch = firstRoundMatches[i];
 
-    // Advance bye winner to next round immediately
-    if (match.nextMatchId) {
-      const nextMatch = matches.find((m) => m.id === match.nextMatchId);
+    // Place bye player directly in their Round 2 match
+    if (firstRoundMatch.nextMatchId) {
+      const nextMatch = matches.find((m) => m.id === firstRoundMatch.nextMatchId);
       if (nextMatch) {
-        nextMatch.players[match.nextMatchSlot] = match.players[0];
-        // Check if next match is now ready
+        nextMatch.players[firstRoundMatch.nextMatchSlot] = byePlayer;
+        // Check if next match is now ready (both players assigned)
         if (nextMatch.players[0] && nextMatch.players[1]) {
           nextMatch.status = 'READY';
         }

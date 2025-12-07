@@ -9,6 +9,9 @@ import {
   writeBatch,
   updateDoc,
   Timestamp,
+  getDoc,
+  UpdateData,
+  DocumentData,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { CONSTANTS } from '../config/constant';
@@ -151,19 +154,19 @@ async function saveMatchesInBatches(
  * @param matchId - The match ID to update
  * @param winnerId - The player ID who won
  * @param userId - User ID performing the action
+ * @param scores - Optional scores for both players
  *
  * @example
- * await updateMatchWinner('tournament_123', 'match_r0_m0', 'player_456', 'user_789');
+ * await updateMatchWinner('tournament_123', 'match_r0_m0', 'player_456', 'user_789', { player1Score: 21, player2Score: 18 });
  */
 export async function updateMatchWinner(
   tournamentId: string,
   matchId: string,
   winnerId: string,
-  userId: string
+  userId: string,
+  scores?: { player1Score?: number; player2Score?: number }
 ): Promise<void> {
-  const batch = writeBatch(db);
-
-  // 1. Update current match
+  // First, read the current match to get nextMatchId and player info
   const currentMatchRef = doc(
     db,
     CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
@@ -172,15 +175,74 @@ export async function updateMatchWinner(
     matchId
   );
 
-  batch.update(currentMatchRef, {
+  const currentMatchSnap = await getDoc(currentMatchRef);
+  if (!currentMatchSnap.exists()) {
+    throw new Error('Match not found');
+  }
+
+  const currentMatch = currentMatchSnap.data() as Match;
+  const winner = currentMatch.players.find((p) => p?.id === winnerId);
+
+  if (!winner) {
+    throw new Error('Winner not found in match players');
+  }
+
+  const batch = writeBatch(db);
+
+  // 1. Update current match with winner and scores
+  const updateData: UpdateData<DocumentData> = {
     winnerId,
     status: 'COMPLETED',
     updatedAt: Timestamp.now(),
     updatedBy: userId,
-  });
+  };
 
-  // Note: Propagating winner to next match requires reading the current match
-  // This will be handled by a separate function or Cloud Function for simplicity
+  // Update scores if provided
+  if (scores) {
+    if (scores.player1Score !== undefined && currentMatch.players[0]) {
+      updateData['players.0.score'] = scores.player1Score;
+    }
+    if (scores.player2Score !== undefined && currentMatch.players[1]) {
+      updateData['players.1.score'] = scores.player2Score;
+    }
+  }
+
+  batch.update(currentMatchRef, updateData);
+
+  // 2. Propagate winner to next match if it exists
+  if (currentMatch.nextMatchId) {
+    const nextMatchRef = doc(
+      db,
+      CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+      tournamentId,
+      CONSTANTS.FIREBASE_COLLECTIONS.MATCHES,
+      currentMatch.nextMatchId
+    );
+
+    // Update the appropriate player slot in the next match
+    const playerSlotKey = `players.${currentMatch.nextMatchSlot}`;
+    const nextMatchUpdate: UpdateData<DocumentData> = {
+      [playerSlotKey]: winner,
+      updatedAt: Timestamp.now(),
+      updatedBy: userId,
+    };
+
+    batch.update(nextMatchRef, nextMatchUpdate);
+
+    // Check if next match should be marked as READY
+    // We need to read the next match to see if both players are now assigned
+    const nextMatchSnap = await getDoc(nextMatchRef);
+    if (nextMatchSnap.exists()) {
+      const nextMatch = nextMatchSnap.data() as Match;
+      const updatedPlayers = [...nextMatch.players];
+      updatedPlayers[currentMatch.nextMatchSlot] = winner;
+
+      // If both player slots are now filled, mark as READY
+      if (updatedPlayers[0] && updatedPlayers[1]) {
+        batch.update(nextMatchRef, { status: 'READY' });
+      }
+    }
+  }
 
   await batch.commit();
 }
