@@ -8,7 +8,6 @@ import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Trophy, ArrowLeft } from "lucide-react";
 import TournamentBracket from "./components/TournamentBracket";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export default function MatchesPage() {
@@ -65,11 +64,11 @@ export default function MatchesPage() {
     <div className="container mx-auto space-y-6">
       {/* Header */}
       <div className="space-y-4">
-        <Link href={`/${tournamentId}`}>
-          <Button variant="ghost" size="sm" className="gap-2">
+        <Link href={`/${tournamentId}`} className="cursor-pointer">
+          <div className=" flex flex-row items-center text-sm mb-2 gap-2 text-gray-500 ">
             <ArrowLeft className="w-4 h-4" />
             Volver al torneo
-          </Button>
+          </div>
         </Link>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

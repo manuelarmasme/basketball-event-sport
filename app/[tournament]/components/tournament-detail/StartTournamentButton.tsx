@@ -6,25 +6,25 @@ import { MatchPlayer } from "@/lib/types/tournament";
 import posthog from "posthog-js";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Trophy } from "lucide-react";
+import { useState } from "react";
 
 interface StartTournamentButtonProps {
   tournamentId: string;
   participants: MatchPlayer[];
   tournamentStatus: string;
+  onStartCreating?: () => void;
 }
 
 export default function StartTournamentButton({
   tournamentId,
   participants,
   tournamentStatus,
+  onStartCreating,
 }: StartTournamentButtonProps) {
   const router = useRouter();
-  const {
-    startTournament,
-    loading: tournamentLoading,
-    getTournamentStats,
-  } = useTournamentBracket();
+  const [isCreating, setIsCreating] = useState(false);
+  const { startTournament, loading: tournamentLoading } =
+    useTournamentBracket();
 
   const handleStartTournament = async () => {
     if (participants.length < 2) {
@@ -35,17 +35,8 @@ export default function StartTournamentButton({
     }
 
     try {
-      const stats = getTournamentStats(participants.length);
-
-      if (stats) {
-        toast.info(
-          `Se generará un torneo con ${stats.totalMatches} partidos. ${
-            stats.byeCount > 0
-              ? `${stats.byeCount} jugadores pasarán automáticamente a la siguiente ronda.`
-              : ""
-          }`
-        );
-      }
+      setIsCreating(true);
+      onStartCreating?.();
 
       const result = await startTournament(tournamentId, participants);
 
@@ -56,8 +47,9 @@ export default function StartTournamentButton({
       // Navigate to matches page after tournament starts
       setTimeout(() => {
         router.push(`/${tournamentId}/matches`);
-      }, 1000);
+      }, 1500);
     } catch (error) {
+      setIsCreating(false);
       posthog.captureException(error, {
         error_location: "StartTournamentButton_handleStartTournament",
         tournament_id: tournamentId,
@@ -66,18 +58,9 @@ export default function StartTournamentButton({
     }
   };
 
-  const handleViewMatches = () => {
-    router.push(`/${tournamentId}/matches`);
-  };
-
-  // If tournament is in progress or finished, show "Ver Partidos" button
+  // If tournament is in progress or finished, don't show button (header has Ver Partidos)
   if (tournamentStatus === "in_progress" || tournamentStatus === "finished") {
-    return (
-      <Button variant="default" onClick={handleViewMatches} className="gap-2">
-        <Trophy className="w-4 h-4" />
-        Ver Partidos
-      </Button>
-    );
+    return null;
   }
 
   // Otherwise, show "Comenzar torneo" button
@@ -86,12 +69,13 @@ export default function StartTournamentButton({
       disabled={
         participants.length < 2 ||
         tournamentLoading ||
+        isCreating ||
         tournamentStatus !== "registration"
       }
       variant="default"
       onClick={handleStartTournament}
     >
-      {tournamentLoading ? "Iniciando..." : "Comenzar torneo"}
+      {isCreating ? "Creando..." : "Comenzar torneo"}
     </Button>
   );
 }

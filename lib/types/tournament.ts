@@ -57,6 +57,7 @@ export interface MatchPlayer {
   id: string;
   name: string;
   score?: number;
+  disqualified?: boolean; // True if player was disqualified
   createdAt: Timestamp; // ISO 8601 string
   createdBy: string; // User ID of creator
   updatedAt: Timestamp | null; // ISO 8601 string
