@@ -155,6 +155,7 @@ async function saveMatchesInBatches(
  * @param winnerId - The player ID who won
  * @param userId - User ID performing the action
  * @param scores - Optional scores for both players
+ * @param disqualifiedPlayerId - Optional ID of disqualified player
  *
  * @example
  * await updateMatchWinner('tournament_123', 'match_r0_m0', 'player_456', 'user_789', { player1Score: 21, player2Score: 18 });
@@ -164,7 +165,8 @@ export async function updateMatchWinner(
   matchId: string,
   winnerId: string,
   userId: string,
-  scores?: { player1Score?: number; player2Score?: number }
+  scores?: { player1Score?: number; player2Score?: number },
+  disqualifiedPlayerId?: string
 ): Promise<void> {
   // First, read the current match to get nextMatchId and player info
   const currentMatchRef = doc(
@@ -200,6 +202,16 @@ export async function updateMatchWinner(
     }
     if (scores.player2Score !== undefined && updatedPlayers[1]) {
       updatedPlayers[1] = { ...updatedPlayers[1], score: scores.player2Score };
+    }
+  }
+
+  // Mark disqualified player if provided
+  if (disqualifiedPlayerId) {
+    if (updatedPlayers[0]?.id === disqualifiedPlayerId) {
+      updatedPlayers[0] = { ...updatedPlayers[0], disqualified: true };
+    }
+    if (updatedPlayers[1]?.id === disqualifiedPlayerId) {
+      updatedPlayers[1] = { ...updatedPlayers[1], disqualified: true };
     }
   }
 

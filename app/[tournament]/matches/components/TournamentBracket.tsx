@@ -52,7 +52,7 @@ export default function TournamentBracket({
 
   return (
     <div className="w-full">
-      <ScrollArea className="h-[50vh] sm:h-[350px]">
+      <ScrollArea className="h-[calc(100vh-400px)] sm:h-[350px]">
         <div className="space-y-6">
           {rounds.map((round, index) => (
             <div key={index} className="space-y-4">

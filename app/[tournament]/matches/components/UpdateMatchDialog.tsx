@@ -113,7 +113,8 @@ export default function UpdateMatchDialog({
         {
           player1Score: player1Score ? parseInt(player1Score) : undefined,
           player2Score: player2Score ? parseInt(player2Score) : undefined,
-        }
+        },
+        disqualifiedPlayer || undefined
       );
 
       toast.success("Partido actualizado correctamente");
