@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
-import { MatchPlayer, SportEvent } from '../types/tournament';
+import { Match, MatchPlayer, SportEvent } from '../types/tournament';
 import { CONSTANTS } from '../config/constant';
 import posthog from 'posthog-js';
+import { generateAndSaveTournamentBracket } from '../actions/tournament';
+import { calculateTournamentStats } from '../utils/tournament';
 
 export function useEvents() {
   const [events, setEvents] = useState<SportEvent[]>([]);
@@ -166,4 +168,122 @@ export function useCreateParticipant() {
   }
 
   return { createParticipant, removeParticipant };
+}
+
+/**
+ * Hook to manage tournament bracket generation
+ * Provides function to start tournament and generate bracket
+ */
+export function useTournamentBracket() {
+  const [loading, setLoading] = useState(false);
+
+  /**
+   * Generate tournament bracket and start the tournament
+   *
+   * @param tournamentId - The tournament ID
+   * @param participants - Array of enrolled players
+   * @param userId - User ID performing the action (for now, use a placeholder)
+   * @returns Object with success status and match count
+   */
+  async function startTournament(
+    tournamentId: string,
+    participants: MatchPlayer[],
+    userId: string = 'system'
+  ): Promise<{ success: boolean; matchCount: number }> {
+    setLoading(true);
+
+    try {
+      const result = await generateAndSaveTournamentBracket(
+        tournamentId,
+        participants,
+        userId
+      );
+
+      posthog.capture('tournament_started', {
+        tournament_id: tournamentId,
+        participant_count: participants.length,
+        match_count: result.matchCount,
+      });
+
+      return result;
+    } catch (err) {
+      posthog.captureException(err, {
+        error_location: 'useTournamentBracket_startTournament',
+        tournament_id: tournamentId,
+        participant_count: participants.length,
+      });
+
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /**
+   * Get tournament statistics without generating bracket
+   * Useful for showing preview before starting tournament
+   */
+  function getTournamentStats(participantCount: number) {
+    try {
+      return calculateTournamentStats(participantCount);
+    } catch {
+      return null;
+    }
+  }
+
+  return { startTournament, loading, getTournamentStats };
+}
+
+/**
+ * Hook to fetch matches for a tournament with real-time updates
+ */
+export function useMatches(tournamentId: string) {
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(
+      collection(
+        db,
+        CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+        tournamentId,
+        CONSTANTS.FIREBASE_COLLECTIONS.MATCHES
+      )
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const matchesData: Match[] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+
+        // Ensure players array exists and has correct structure
+        const players = data.players || [null, null];
+
+        matchesData.push({
+          id: doc.id,
+          ...data,
+          players: [
+            players[0] || null,
+            players[1] || null
+          ] as [MatchPlayer | null, MatchPlayer | null]
+        } as Match);
+      });
+
+      // Sort by roundIndex and match position
+      matchesData.sort((a, b) => {
+        if (a.roundIndex !== b.roundIndex) {
+          return a.roundIndex - b.roundIndex;
+        }
+        return a.id.localeCompare(b.id);
+      });
+
+      setMatches(matchesData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [tournamentId]);
+
+  return { matches, loading };
 }
