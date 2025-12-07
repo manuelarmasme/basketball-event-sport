@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MatchPlayer, PreIncriptionPlayer } from "@/lib/types/tournament";
 import FilterInput from "./FilterInput";
 import { useState } from "react";
-import InscriptionDialog from "./InscriptionDialog";
+import InscriptionButton from "./InscriptionButton";
 import RemoveInscriptionDialog from "./RemoveInscriptionDialog";
 
 export default function ListParticipants({
@@ -44,7 +44,7 @@ export default function ListParticipants({
             </ItemContent>
             <ItemActions>
               {!removeInscription && (
-                <InscriptionDialog participantName={player.name as string} />
+                <InscriptionButton participantName={player.name as string} />
               )}
 
               {removeInscription && (
