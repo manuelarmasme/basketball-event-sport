@@ -11,7 +11,7 @@ import { Users } from "lucide-react";
 import ListParticipants from "./ListParticipants";
 import { Badge } from "@/components/ui/badge";
 import CreateInscriptionDialog from "./CreateInscriptionDialog";
-import { Button } from "@/components/ui/button";
+import StartTournamentButton from "./StartTournamentButton";
 
 export default function TournamentDetailContainer({
   tournamentId,
@@ -70,7 +70,6 @@ export default function TournamentDetailContainer({
 
               <CreateInscriptionDialog />
             </CardHeader>
-
             <CardContent>
               {isPending ? (
                 <Loading message="Cargando participantes..." />
@@ -101,9 +100,11 @@ export default function TournamentDetailContainer({
                 </Badge>
               )}
             </div>
-            <Button disabled={matchParticipants.length === 0} variant="default">
-              Comenzar torneo
-            </Button>
+            <StartTournamentButton
+              tournamentId={tournamentId}
+              participants={matchParticipants as MatchPlayer[]}
+              tournamentStatus={event?.status || ""}
+            />
           </CardHeader>
           <CardContent>
             {participantsLoading ? (
