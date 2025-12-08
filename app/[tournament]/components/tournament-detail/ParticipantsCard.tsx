@@ -17,6 +17,7 @@ interface ParticipantsListCardProps {
   headerAction?: React.ReactNode;
   filterPlaceholder?: string;
   showRemoveButton?: boolean;
+  alwaysShowHeaderAction?: boolean;
 }
 
 export default function ParticipantsListCard({
@@ -30,6 +31,7 @@ export default function ParticipantsListCard({
   headerAction,
   filterPlaceholder,
   showRemoveButton = false,
+  alwaysShowHeaderAction = false,
 }: ParticipantsListCardProps) {
   return (
     <>
@@ -47,7 +49,7 @@ export default function ParticipantsListCard({
             )}
           </div>
 
-          {canManageInscriptions && headerAction}
+          {(canManageInscriptions || alwaysShowHeaderAction) && headerAction}
         </CardHeader>
         <CardContent>
           {!canManageInscriptions ? (

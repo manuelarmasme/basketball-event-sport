@@ -12,11 +12,13 @@ import {
   getDoc,
   UpdateData,
   DocumentData,
+  getDocs,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { CONSTANTS } from '../config/constant';
 import { Match, MatchPlayer } from '../types/tournament';
 import { generateTournamentBracket } from '../utils/tournament';
+import posthog from 'posthog-js';
 
 /**
  * Generate and save tournament bracket to Firestore
@@ -267,4 +269,47 @@ export async function updateMatchWinner(
   }
 
   await batch.commit();
+}
+
+// create a function which erase all matches for a tournament and create again the matches given the participants
+export async function resetAndGenerateTournamentBracket(
+  tournamentId: string,
+  participants: MatchPlayer[],
+  userId: string
+): Promise<{ success: boolean; matchCount: number; tournamentId: string }> {
+  if (participants.length < 2) {
+    throw new Error('Tournament requires at least 2 participants to start');
+  }
+
+  try {
+    // 1. Delete existing matches
+    const matchesRef = collection(
+      db,
+      CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+      tournamentId,
+      CONSTANTS.FIREBASE_COLLECTIONS.MATCHES
+    );
+
+    const matchesSnap = await getDocs(matchesRef);
+    const deleteBatch = writeBatch(db);
+
+    matchesSnap.forEach((doc) => {
+      deleteBatch.delete(doc.ref);
+    });
+
+    await deleteBatch.commit();
+
+    // 2. Generate and save new bracket
+    return await generateAndSaveTournamentBracket(
+      tournamentId,
+      participants,
+      userId
+    );
+  } catch (error) {
+    posthog.captureException(error, {
+      error_location: 'resetAndGenerateTournamentBracket',
+      tournament_id: tournamentId,
+    });
+    throw new Error('Error resetting and generating tournament bracket');
+  }
 }
