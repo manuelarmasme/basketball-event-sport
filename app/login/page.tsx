@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleGoogleSignIn() {
@@ -20,10 +21,15 @@ export default function LoginPage() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
 
+      // Set session cookie for proxy route protection
+      const idToken = await result.user.getIdToken();
+      document.cookie = `session=${idToken}; path=/; max-age=3600; SameSite=Lax`;
+
       toast.success(`Bienvenido, ${result.user.displayName || "Usuario"}`);
 
-      // Redirect to home or dashboard
-      router.push("/");
+      // Redirect to original page or home
+      const redirect = searchParams.get("redirect") || "/";
+      router.push(redirect);
     } catch (error) {
       console.error("Error signing in:", error);
       toast.error("Error al iniciar sesión con Google");

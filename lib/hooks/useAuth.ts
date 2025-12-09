@@ -45,7 +45,7 @@ export function useAuth() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
       auth,
-      (firebaseUser: User | null) => {
+      async (firebaseUser: User | null) => {
         if (firebaseUser) {
           const userData: UserData = {
             uid: firebaseUser.uid,
@@ -55,12 +55,23 @@ export function useAuth() {
             emailVerified: firebaseUser.emailVerified,
           };
 
+          // Set session cookie for proxy route protection
+          try {
+            const idToken = await firebaseUser.getIdToken();
+            document.cookie = `session=${idToken}; path=/; max-age=3600; SameSite=Lax`;
+          } catch (error) {
+            console.error('Error setting session cookie:', error);
+          }
+
           setAuthState({
             user: userData,
             loading: false,
             error: null,
           });
         } else {
+          // Clear session cookie on logout
+          document.cookie = 'session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+
           setAuthState({
             user: null,
             loading: false,
@@ -84,6 +95,9 @@ export function useAuth() {
 
   async function signOut() {
     try {
+      // Clear session cookie
+      document.cookie = 'session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+
       await firebaseSignOut(auth);
       toast.success("Sesión cerrada correctamente");
       router.push("/login");
