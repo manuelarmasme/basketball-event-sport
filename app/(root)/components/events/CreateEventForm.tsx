@@ -22,6 +22,7 @@ import { SportEvent } from "@/lib/types/tournament";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { toast } from "sonner";
+import { auth } from "@/lib/firebase";
 
 type EventFormData = z.infer<typeof eventSchema>;
 
@@ -71,7 +72,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           googleSheetUrl: formResult.data.googleSheetUrl,
           status: "registration",
           createdAt: formatTimestapToFirebaseTimestamp(new Date()),
-          createdBy: "system",
+          createdBy: auth.currentUser?.uid || "system",
           updatedAt: null,
           updatedBy: null,
         };

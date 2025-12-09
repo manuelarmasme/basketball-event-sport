@@ -15,11 +15,7 @@ interface MatchCardProps {
   compact?: boolean;
 }
 
-export default function MatchCard({
-  match,
-  tournamentId,
-  compact = false,
-}: MatchCardProps) {
+export default function MatchCard({ match, tournamentId }: MatchCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   // Safety check for players array
   if (!match.players || !Array.isArray(match.players)) {
@@ -69,18 +65,17 @@ export default function MatchCard({
     <>
       <Card
         className={cn(
-          "relative overflow-hidden transition-all hover:shadow-md cursor-pointer",
-          compact ? "min-w-[200px]" : "min-w-[280px]",
+          "relative overflow-hidden transition-all hover:shadow-md cursor-pointer group",
           isCompleted && "border-green-500/30",
           isReady && "border-blue-500/30"
         )}
         onClick={() => setDialogOpen(true)}
       >
-        <CardHeader className="pb-3 space-y-0">
+        <CardHeader className=" px-3 space-y-0">
           <div className="flex items-center justify-between gap-2">
             <Badge
               variant="outline"
-              className={cn("w-fit text-xs", getStatusColor())}
+              className={cn("w-fit text-[10px] h-5 px-1.5", getStatusColor())}
             >
               <span className="flex items-center gap-1">
                 {getStatusIcon()}
@@ -89,7 +84,7 @@ export default function MatchCard({
             </Badge>
 
             {hasDisqualification && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive" className="text-[10px] h-5 px-1.5">
                 <Ban className="w-3 h-3 mr-1" />
                 DQ
               </Badge>
@@ -97,7 +92,7 @@ export default function MatchCard({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-1.5 px-3">
           {/* Player 1 */}
 
           <ParticipantNameScore
@@ -107,8 +102,8 @@ export default function MatchCard({
           />
 
           {/* VS Divider */}
-          <div className="flex items-center justify-center">
-            <span className="text-xs text-muted-foreground font-semibold px-2">
+          <div className="flex items-center justify-center py-0.5">
+            <span className="text-[10px] text-muted-foreground font-semibold">
               VS
             </span>
           </div>

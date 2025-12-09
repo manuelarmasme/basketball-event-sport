@@ -1,7 +1,7 @@
 'use server';
 
 import { v4 as uuidv4 } from 'uuid';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { CONSTANTS } from '../config/constant';
 import { invitationSchema } from '../schemas/invitation';
@@ -9,7 +9,7 @@ import posthog from 'posthog-js';
 import { Invitation } from '../types/invitation';
 
 
-export async function createInvitation(formData: Partial<Invitation>) {
+export async function createInvitation(formData: Partial<Invitation>, userId: string) {
   try {
     // Extract and validate form data
     console.log('formdata', formData);
@@ -30,8 +30,7 @@ export async function createInvitation(formData: Partial<Invitation>) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 1); // 24 hours from now
 
-    // TODO: Replace 'system' with actual authenticated user ID
-    const currentUserId = 'system';
+
 
     // Save invitation to Firestore
     const invitationRef = await addDoc(
@@ -42,7 +41,7 @@ export async function createInvitation(formData: Partial<Invitation>) {
         role: validation.data.role,
         token,
         status: 'pending',
-        invitedBy: currentUserId,
+        invitedBy: userId,
         invitedAt: Timestamp.now(),
         expiresAt: Timestamp.fromDate(expiresAt),
       }
@@ -51,12 +50,12 @@ export async function createInvitation(formData: Partial<Invitation>) {
     console.log('invitationRef',invitationRef);
 
 
-    await sendEmail(token, validation.data.email, validation.data.name);
+    await sendEmail(token, validation.data.email, validation.data.name, invitationRef.id);
 
-    return {
-      success: true,
-      invitationId: invitationRef.id,
-    };
+    // return {
+    //   success: true,
+    //   invitationId: invitationRef.id,
+    // };
   } catch (error) {
     console.error('Create invitation error:', error);
 
@@ -65,14 +64,11 @@ export async function createInvitation(formData: Partial<Invitation>) {
       context: 'createInvitation',
     });
 
-    return {
-      success: false,
-      error: 'Error al enviar la invitación. Por favor intenta de nuevo.',
-    };
+    throw new Error('Error al crear la invitación.');
   }
 }
 
-export async function sendEmail(token: string, email: string, name: string) {
+export async function sendEmail(token: string, email: string, name: string, invitationId: string) {
     try {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     const invitationLink = `${appUrl}/accept-invitation?token=${token}`;
@@ -97,7 +93,20 @@ export async function sendEmail(token: string, email: string, name: string) {
             context: 'sendEmail',
           });
 
+          await removeInvitation(invitationId);
+
         throw new Error('Error al enviar el correo de invitación.');
     }
 }
 
+async function removeInvitation(invitationId: string) {
+    try {
+      await deleteDoc(doc(db, CONSTANTS.FIREBASE_COLLECTIONS.INVITATIONS, invitationId));
+  } catch (error) {
+    console.error('Remove invitation error:', error);
+    posthog.captureException(error, {
+      context: 'removeInvitation',
+    });
+    throw new Error('Error al eliminar la invitación.');
+  }
+}

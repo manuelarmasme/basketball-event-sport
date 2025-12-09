@@ -14,8 +14,8 @@ import { RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { resetAndGenerateTournamentBracket } from "@/lib/actions/tournament";
 import { MatchPlayer } from "@/lib/types/tournament";
-import { useRouter } from "next/dist/client/components/navigation";
 import posthog from "posthog-js";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 interface ResetTournamentButtonProps {
   tournamentId: string;
@@ -28,6 +28,7 @@ export default function ResetTournamentButton({
 }: ResetTournamentButtonProps) {
   const [open, setOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const { user } = useAuth();
 
   const handleReset = async () => {
     if (participants.length < 2) {
@@ -43,7 +44,7 @@ export default function ResetTournamentButton({
       await resetAndGenerateTournamentBracket(
         tournamentId,
         participants,
-        "current-user" // You might want to pass the actual user ID
+        user?.uid as string // You might want to pass the actual user ID
       );
 
       setOpen(false);

@@ -27,6 +27,7 @@ import { InvitationFormData, invitationSchema } from "@/lib/schemas/invitation";
 import posthog from "posthog-js";
 import { Invitation } from "@/lib/types/invitation";
 import z from "zod";
+import { auth } from "@/lib/firebase";
 
 export function InviteUserDialog() {
   const [open, setOpen] = useState(false);
@@ -59,7 +60,10 @@ export function InviteUserDialog() {
           role: formData.role as "admin" | "manager",
         };
 
-        await createInvitation(partialInvitationFormData);
+        await createInvitation(
+          partialInvitationFormData,
+          auth.currentUser?.uid as string
+        );
         toast.success("Invitación enviada correctamente");
         setOpen(false);
         setFormData({ name: "", email: "", role: "" });
