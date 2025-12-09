@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, query, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, query, updateDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Match, MatchPlayer, SportEvent } from '../types/tournament';
 import { CONSTANTS } from '../config/constant';
@@ -99,7 +99,7 @@ export function useUpdateEvent() {
 export function useDeleteEvent() {
   async function deleteEvent(eventId: string): Promise<void> {
     try {
-      // Delete all matches in the subcollection
+      // Get all matches
       const matchesRef = collection(
         db,
         CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
@@ -107,12 +107,8 @@ export function useDeleteEvent() {
         CONSTANTS.FIREBASE_COLLECTIONS.MATCHES
       );
       const matchesSnapshot = await getDocs(matchesRef);
-      const matchDeletePromises = matchesSnapshot.docs.map((doc) =>
-        deleteDoc(doc.ref)
-      );
-      await Promise.all(matchDeletePromises);
 
-      // Delete all participants in the subcollection
+      // Get all participants
       const participantsRef = collection(
         db,
         CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
@@ -120,14 +116,36 @@ export function useDeleteEvent() {
         CONSTANTS.FIREBASE_COLLECTIONS.PARTICIPANTS
       );
       const participantsSnapshot = await getDocs(participantsRef);
-      const participantDeletePromises = participantsSnapshot.docs.map((doc) =>
-        deleteDoc(doc.ref)
-      );
-      await Promise.all(participantDeletePromises);
 
-      // Finally, delete the event itself
+      // Firestore batch has a limit of 500 operations
+      // We'll need to handle this in chunks if there are more
+      const allDocs = [
+        ...matchesSnapshot.docs,
+        ...participantsSnapshot.docs,
+      ];
+
+      const BATCH_SIZE = 500;
+      const batches = [];
+
+      for (let i = 0; i < allDocs.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = allDocs.slice(i, i + BATCH_SIZE);
+
+        chunk.forEach((document) => {
+          batch.delete(document.ref);
+        });
+
+        batches.push(batch.commit());
+      }
+
+      // Execute all batches
+      await Promise.all(batches);
+
+      // Finally, delete the event itself in a separate batch
+      const finalBatch = writeBatch(db);
       const eventDocRef = doc(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS, eventId);
-      await deleteDoc(eventDocRef);
+      finalBatch.delete(eventDocRef);
+      await finalBatch.commit();
     } catch (err) {
       posthog.captureException(err, {
         'error_location': 'useDeleteEvent',
