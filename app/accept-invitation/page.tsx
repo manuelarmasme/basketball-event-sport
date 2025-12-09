@@ -6,8 +6,14 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Chrome } from "lucide-react";
 import { Loading } from "@/components/ui/loading";
+import Google from "../assets/icons/gmail";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+} from "@/components/ui/card";
 
 function AcceptInvitationContent() {
   const searchParams = useSearchParams();
@@ -51,8 +57,6 @@ function AcceptInvitationContent() {
       // Redirect to home page
       router.push("/");
     } catch (error: unknown) {
-      console.error("Accept invitation error:", error);
-
       // Handle specific error messages
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -73,52 +77,58 @@ function AcceptInvitationContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-purple-50">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Aceptar Invitación
-          </h1>
-          <p className="text-gray-600">
-            Inicia sesión con Google para aceptar tu invitación y unirte a
-            Reskata Event Sport
-          </p>
-        </div>
-
-        {!token ? (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <p className="text-sm text-red-800">
-              Token de invitación no encontrado. Verifica que el enlace sea
-              correcto.
+    <div className="flex h-full items-center justify-center p-4">
+      <div className="max-w-md w-full rounded-lg shadow-lg">
+        <Card className="p-6">
+          <CardHeader>
+            <div className="text-center">
+              <h1 className="text-3xl font-bold  my-2">Aceptar Invitación</h1>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-400 text-center">
+              Inicia sesión con Google para aceptar tu invitación y unirte a
+              Reskata Event Sport
             </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <Button
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              size="lg"
-              className="w-full"
-            >
-              {isLoading ? (
-                <>
-                  <div className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  <Chrome className="mr-2 h-5 w-5" />
-                  Continuar con Google
-                </>
-              )}
-            </Button>
+          </CardContent>
 
-            <p className="text-xs text-center text-gray-500">
-              Al continuar, aceptas los términos de servicio y la política de
-              privacidad
-            </p>
-          </div>
-        )}
+          <CardAction>
+            {!token ? (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <p className="text-sm text-red-800">
+                  Token de invitación no encontrado. Verifica que el enlace sea
+                  correcto.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <Button
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                  size="lg"
+                  className="w-full cursor-pointer"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      <Google className="mr-2 h-5 w-5" />
+                      Continuar con Google
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-center text-gray-500">
+                  Al continuar, aceptas los términos de servicio y la política
+                  de privacidad
+                </p>
+              </div>
+            )}
+          </CardAction>
+        </Card>
       </div>
     </div>
   );
@@ -126,7 +136,7 @@ function AcceptInvitationContent() {
 
 export default function AcceptInvitationPage() {
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<Loading message="Cargando invitación" />}>
       <AcceptInvitationContent />
     </Suspense>
   );
