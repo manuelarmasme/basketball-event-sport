@@ -4,6 +4,9 @@ import { InviteUserDialog } from "./components/InviteUserDialog";
 import InvitationsList from "./components/InvitationsList";
 import { useInvitations } from "@/lib/hooks/useInvitations";
 import { Loading } from "@/components/ui/loading";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function Users() {
   const { invitations, loading, error } = useInvitations();
@@ -29,21 +32,30 @@ export default function Users() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Usuarios</h1>
-          <p className="text-gray-600 mt-1">
-            Gestiona las invitaciones de usuarios al sistema
-          </p>
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col justify-between mb-6">
+          <Link href={`/`} className="cursor-pointer">
+            <div className=" flex flex-row items-center text-sm mb-2 gap-2 text-gray-500 ">
+              <ArrowLeft className="w-4 h-4" />
+              Volver al inicio
+            </div>
+          </Link>
+          <div className="flex flex-row justify-between w-full">
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-bold">Usuarios</h1>
+              <p className="text-gray-400 mt-1">
+                Gestiona las invitaciones de usuarios al sistema
+              </p>
+            </div>
+            <InviteUserDialog />
+          </div>
         </div>
-        <InviteUserDialog />
-      </div>
+      </CardHeader>
 
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold mb-4">Invitaciones</h2>
+      <CardContent>
         <InvitationsList invitations={invitations} />
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

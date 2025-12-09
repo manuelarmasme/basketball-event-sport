@@ -8,7 +8,9 @@ export const invitationSchema = z.object({
     .string({ message: 'El nombre es requerido' })
     .min(2, { message: 'El nombre debe tener al menos 2 caracteres' })
     .max(100, { message: 'El nombre no puede exceder 100 caracteres' }),
-  role: z.array(z.enum(['admin', 'manager'])).min(1, { message: 'Selecciona al menos un rol' }),
+  role: z.string().refine((val) => val === 'admin' || val === 'manager', {
+    message: 'El rol debe ser "admin" o "manager"',
+  }),
 });
 
 export type InvitationFormData = z.infer<typeof invitationSchema>;

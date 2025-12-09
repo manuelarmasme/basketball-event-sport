@@ -26,6 +26,7 @@ import {
 import { InvitationFormData, invitationSchema } from "@/lib/schemas/invitation";
 import posthog from "posthog-js";
 import { Invitation } from "@/lib/types/invitation";
+import z from "zod";
 
 export function InviteUserDialog() {
   const [open, setOpen] = useState(false);
@@ -35,7 +36,7 @@ export function InviteUserDialog() {
   const [formData, setFormData] = useState<InvitationFormData>({
     name: "",
     email: "",
-    role: [],
+    role: "",
   });
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -47,29 +48,28 @@ export function InviteUserDialog() {
       const formResult = invitationSchema.safeParse(formData);
 
       if (!formResult.success) {
-        const flattened = formResult.error.flatten();
-        setErrors(flattened.fieldErrors);
+        const flattened = z.flattenError(formResult.error).fieldErrors;
+        setErrors(flattened);
         setIsSubmitting(false);
-        toast.error("Por favor corrige los errores en el formulario");
         return;
       } else {
         const partialInvitationFormData: Partial<Invitation> = {
           name: formData.name,
           email: formData.email,
-          role: formData.role[0] as "admin" | "manager",
+          role: formData.role as "admin" | "manager",
         };
 
         await createInvitation(partialInvitationFormData);
         toast.success("Invitación enviada correctamente");
         setOpen(false);
-        setFormData({ name: "", email: "", role: [] });
+        setFormData({ name: "", email: "", role: "" });
         setErrors({});
       }
     } catch (error) {
       posthog.captureException(error, {
         location: "InviteUserDialog.handleSubmit",
       });
-      console.error("Invitation error:", error);
+
       toast.error("Error al enviar la invitación");
     } finally {
       setIsSubmitting(false);
@@ -138,10 +138,10 @@ export function InviteUserDialog() {
               onValueChange={(value) =>
                 setFormData({
                   ...formData,
-                  role: [value as "admin" | "manager"],
+                  role: value as "admin" | "manager",
                 })
               }
-              value={formData.role[0] || ""}
+              value={formData.role || ""}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona un rol" />

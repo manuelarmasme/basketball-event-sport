@@ -17,14 +17,14 @@ export default function FabButton() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="absolute fixed bottom-0 right-0 m-4">
+    <div className="">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button
             variant="secondary"
-            size="icon-lg"
+            size="icon"
             aria-label="Submit"
-            className="rounded-full cursor-pointer shadow-lg hover:shadow-xl focus:shadow-xl transition-shadow"
+            className=" cursor-pointer shadow-lg hover:shadow-xl focus:shadow-xl transition-shadow"
           >
             <Plus
               className="size-8 text-muted-foreground/50 text-primary "

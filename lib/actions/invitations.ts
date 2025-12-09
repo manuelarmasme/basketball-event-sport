@@ -7,11 +7,13 @@ import { CONSTANTS } from '../config/constant';
 import { invitationSchema } from '../schemas/invitation';
 import posthog from 'posthog-js';
 import { Invitation } from '../types/invitation';
-import z from 'zod';
+
 
 export async function createInvitation(formData: Partial<Invitation>) {
   try {
     // Extract and validate form data
+    console.log('formdata', formData);
+
     const data = {
       email: formData.email as string,
       name: formData.name as string,
@@ -20,10 +22,7 @@ export async function createInvitation(formData: Partial<Invitation>) {
 
     const validation = invitationSchema.safeParse(data);
     if (!validation.success) {
-      return {
-        success: false,
-        errors: z.flattenError(validation.error).fieldErrors,
-      };
+        throw new Error('Hubo un error con los datos del formulario.');
     }
 
     // Generate UUID token (24 hour expiration)
@@ -48,6 +47,9 @@ export async function createInvitation(formData: Partial<Invitation>) {
         expiresAt: Timestamp.fromDate(expiresAt),
       }
     );
+
+    console.log('invitationRef',invitationRef);
+
 
     await sendEmail(token, validation.data.email, validation.data.name);
 

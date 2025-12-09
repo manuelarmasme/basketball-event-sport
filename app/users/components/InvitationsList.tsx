@@ -81,7 +81,7 @@ export default function InvitationsList({ invitations }: InvitationsListProps) {
         placeholder="Filtrar invitaciones..."
       />
 
-      <ScrollArea className="h-96 mt-4">
+      <ScrollArea className="h-86 mt-4">
         {filteredInvitations.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500">
