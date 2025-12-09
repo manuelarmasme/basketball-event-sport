@@ -15,11 +15,7 @@ interface MatchCardProps {
   compact?: boolean;
 }
 
-export default function MatchCard({
-  match,
-  tournamentId,
-  compact = false,
-}: MatchCardProps) {
+export default function MatchCard({ match, tournamentId }: MatchCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   // Safety check for players array
   if (!match.players || !Array.isArray(match.players)) {
