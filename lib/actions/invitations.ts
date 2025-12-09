@@ -78,6 +78,8 @@ export async function sendEmail(token: string, email: string, name: string, invi
 
     const invitationLink = `${appUrl}/accept-invitation?token=${token}`;
 
+    console.log('invitationLink', invitationLink);
+
     const emailResponse = await fetch(`${appUrl}/api/send-invitation`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -100,7 +102,7 @@ export async function sendEmail(token: string, email: string, name: string, invi
 
           await removeInvitation(invitationId);
 
-        throw new Error('Error al enviar el correo de invitación.');
+        throw new Error('Error al enviar el correo de invitación.', error as Error);
     }
 }
 
