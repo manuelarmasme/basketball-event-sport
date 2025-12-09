@@ -1,11 +1,10 @@
-import FabButton from "@/app/(root)/components/events/FabButton";
 import { EventsList } from "./components/events/EventsList";
+import AuthLayout from "@/components/auth/AuthLayout";
 
 export default function Home() {
   return (
-    <>
+    <AuthLayout>
       <EventsList />
-      <FabButton />
-    </>
+    </AuthLayout>
   );
 }

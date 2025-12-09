@@ -8,6 +8,8 @@ import { MatchPlayer, PreIncriptionPlayer } from "@/lib/types/tournament";
 import CreateInscriptionDialog from "./CreateInscriptionDialog";
 import StartTournamentButton from "./StartTournamentButton";
 import ParticipantsListCard from "./ParticipantsCard";
+import CreatingMatchesLoader from "./CreatingMatchesLoader";
+import ResetTournamentButton from "./ResetTournamentButton";
 
 export default function TournamentDetailContainer({
   tournamentId,
@@ -44,36 +46,7 @@ export default function TournamentDetailContainer({
   }
 
   if (isCreatingTournament) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <div className="text-center space-y-3">
-            <h3 className="text-2xl font-semibold">Creando torneo...</h3>
-            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                <span>Creando partidos...</span>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <div
-                  className="w-2 h-2 bg-primary rounded-full animate-pulse"
-                  style={{ animationDelay: "0.2s" }}
-                />
-                <span>Asignando participantes...</span>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <div
-                  className="w-2 h-2 bg-primary rounded-full animate-pulse"
-                  style={{ animationDelay: "0.4s" }}
-                />
-                <span>Configurando rondas...</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <CreatingMatchesLoader />;
   }
 
   return (
@@ -109,13 +82,24 @@ export default function TournamentDetailContainer({
           eventStatus={event?.status || ""}
           isPending={participantsLoading}
           filterPlaceholder="Filtrar Inscritos..."
+          alwaysShowHeaderAction={event?.status === "in_progress"}
           headerAction={
-            <StartTournamentButton
-              tournamentId={tournamentId}
-              participants={matchParticipants as MatchPlayer[]}
-              tournamentStatus={event?.status || ""}
-              onStartCreating={() => setIsCreatingTournament(true)}
-            />
+            <>
+              {event?.status === "in_progress" && (
+                <ResetTournamentButton
+                  tournamentId={tournamentId}
+                  participants={matchParticipants as MatchPlayer[]}
+                />
+              )}
+              {event?.status === "registration" && (
+                <StartTournamentButton
+                  tournamentId={tournamentId}
+                  participants={matchParticipants as MatchPlayer[]}
+                  tournamentStatus={event?.status || ""}
+                  onStartCreating={() => setIsCreatingTournament(true)}
+                />
+              )}
+            </>
           }
           showRemoveButton={true}
         />
