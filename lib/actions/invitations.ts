@@ -7,6 +7,7 @@ import { CONSTANTS } from '../config/constant';
 import { invitationSchema } from '../schemas/invitation';
 import posthog from 'posthog-js';
 import { Invitation } from '../types/invitation';
+import { headers } from 'next/headers';
 
 
 export async function createInvitation(formData: Partial<Invitation>, userId: string) {
@@ -70,7 +71,11 @@ export async function createInvitation(formData: Partial<Invitation>, userId: st
 
 export async function sendEmail(token: string, email: string, name: string, invitationId: string) {
     try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    const appUrl = `${protocol}://${host}`;
+
     const invitationLink = `${appUrl}/accept-invitation?token=${token}`;
 
     const emailResponse = await fetch(`${appUrl}/api/send-invitation`, {
