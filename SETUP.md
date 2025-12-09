@@ -35,16 +35,29 @@ cp .env.example .env
 Get these from: [Firebase Console](https://console.firebase.google.com/) → Project Settings → General → Your apps
 
 #### Firebase Admin SDK (for User Invitations)
-**IMPORTANT**: Place `google-admin.json` in `app/api/` directory:
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Project Settings → Service Accounts
-3. Click "Generate New Private Key"
-4. Save the downloaded JSON file as `app/api/google-admin.json`
+1. **Download Service Account JSON**:
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Project Settings → Service Accounts
+   - Click "Generate New Private Key"
+   - Save the file (e.g., `google-admin.json`)
 
-⚠️ **SECURITY**: This file is automatically ignored by git. Never commit it to version control!
+2. **Add to `.env` file**:
+   ```bash
+   FIREBASE_SERVICE_ACCOUNT_JSON='<paste entire JSON content here>'
+   ```
+   
+   **Important**: 
+   - Copy the **complete JSON** (including curly braces `{}`)
+   - Keep it as a **single line** string
+   - Wrap in **single quotes** `'...'`
 
-The app will automatically use this file for Firebase Admin SDK operations (custom claims, user management).
+3. **For Vercel Deployment**:
+   - Same variable name: `FIREBASE_SERVICE_ACCOUNT_JSON`
+   - Same JSON content
+   - Set in Vercel Dashboard → Settings → Environment Variables
+
+⚠️ **SECURITY**: Never commit the JSON file to git. The `.env` file is already in `.gitignore`.
 
 ### 4. Type Definitions
 

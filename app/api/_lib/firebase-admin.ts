@@ -5,12 +5,13 @@
  * to ensure credentials are never exposed to the client.
  *
  * Uses singleton pattern to prevent multiple initializations.
+ *
+ * Requires FIREBASE_SERVICE_ACCOUNT_JSON environment variable
+ * with the complete service account JSON.
  */
 
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
-import * as path from 'path';
-import * as fs from 'fs';
 
 let adminApp: App | null = null;
 let adminAuthInstance: Auth | null = null;
@@ -30,30 +31,37 @@ export function getAdminApp(): App {
     return adminApp;
   }
 
-  // Initialize with service account JSON file
-  // The file path is relative to the project root
-  const serviceAccountPath = path.join(process.cwd(), 'app', 'api', 'google-admin.json');
-
-  // Verify the file exists
-  if (!fs.existsSync(serviceAccountPath)) {
+  // Parse service account from environment variable
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     throw new Error(
-      'Firebase service account file not found at: ' + serviceAccountPath +
-      '\nMake sure google-admin.json exists in app/api/ directory'
+      'FIREBASE_SERVICE_ACCOUNT_JSON environment variable is required.\n\n' +
+      'Setup instructions:\n' +
+      '1. Get your service account JSON from Firebase Console\n' +
+      '   (Project Settings → Service Accounts → Generate New Private Key)\n' +
+      '2. Add to .env file:\n' +
+      '   FIREBASE_SERVICE_ACCOUNT_JSON=\'{"type":"service_account",...}\'\n' +
+      '3. For Vercel: Add as environment variable in dashboard\n'
     );
   }
 
-  // Read and parse the service account file
-  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+  let serviceAccount: Record<string, unknown>;
 
-  // Initialize only once with service account credentials
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+  } catch {
+    throw new Error(
+      'Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON environment variable.\n' +
+      'Make sure it contains valid JSON (the complete service account object).'
+    );
+  }
+
+  // Initialize Firebase Admin SDK
   adminApp = initializeApp({
     credential: cert(serviceAccount),
   });
 
   return adminApp;
-}
-
-/**
+}/**
  * Get Firebase Admin Auth instance
  * Lazy initialization of Auth service
  */

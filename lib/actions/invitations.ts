@@ -6,21 +6,23 @@ import { db } from '../firebase';
 import { CONSTANTS } from '../config/constant';
 import { invitationSchema } from '../schemas/invitation';
 import posthog from 'posthog-js';
+import { Invitation } from '../types/invitation';
+import z from 'zod';
 
-export async function createInvitation(formData: FormData) {
+export async function createInvitation(formData: Partial<Invitation>) {
   try {
     // Extract and validate form data
     const data = {
-      email: formData.get('email') as string,
-      name: formData.get('name') as string,
-      role: formData.get('role') as 'admin' | 'manager',
+      email: formData.email as string,
+      name: formData.name as string,
+      role: formData.role as 'admin' | 'manager',
     };
 
     const validation = invitationSchema.safeParse(data);
     if (!validation.success) {
       return {
         success: false,
-        errors: validation.error.flatten().fieldErrors,
+        errors: z.flattenError(validation.error).fieldErrors,
       };
     }
 
@@ -47,24 +49,7 @@ export async function createInvitation(formData: FormData) {
       }
     );
 
-    // Send invitation email via API route
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const invitationLink = `${appUrl}/accept-invitation?token=${token}`;
-
-    const emailResponse = await fetch(`${appUrl}/api/send-invitation`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: validation.data.email,
-        name: validation.data.name,
-        invitationLink,
-      }),
-    });
-
-    if (!emailResponse.ok) {
-      const errorData = await emailResponse.json();
-      throw new Error(errorData.error || 'Failed to send invitation email');
-    }
+    await sendEmail(token, validation.data.email, validation.data.name);
 
     return {
       success: true,
@@ -84,3 +69,33 @@ export async function createInvitation(formData: FormData) {
     };
   }
 }
+
+export async function sendEmail(token: string, email: string, name: string) {
+    try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const invitationLink = `${appUrl}/accept-invitation?token=${token}`;
+
+    const emailResponse = await fetch(`${appUrl}/api/send-invitation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        name: name,
+        invitationLink,
+      }),
+    });
+
+    if (!emailResponse.ok) {
+      const errorData = await emailResponse.json();
+      throw new Error(errorData.error || 'Failed to send invitation email');
+    }
+
+    } catch (error) {
+        posthog.captureException(error, {
+            context: 'sendEmail',
+          });
+
+        throw new Error('Error al enviar el correo de invitación.');
+    }
+}
+

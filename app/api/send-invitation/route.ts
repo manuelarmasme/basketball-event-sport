@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'Reskata <onboarding@resend.dev>', // TODO: Replace with your verified domain
+      from: 'Reskata <contacto@reskataofficial.com>', // TODO: Replace with your verified domain
       to: [email],
       subject: 'Invitación a Reskata Event Sport',
       html: `
