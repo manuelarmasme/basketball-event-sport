@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { addDoc, collection, deleteDoc, doc, onSnapshot, query } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, query, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Match, MatchPlayer, SportEvent } from '../types/tournament';
 import { CONSTANTS } from '../config/constant';
@@ -76,6 +76,68 @@ export function useCreateEvent() {
 
 
   return { createEvent };
+}
+
+// create a hook to update an event
+export function useUpdateEvent() {
+  async function updateEvent(eventId: string, partialEventData: Partial<SportEvent>): Promise<void> {
+    try {
+      const docRef = doc(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS, eventId);
+      await updateDoc(docRef, partialEventData);
+    } catch (err) {
+      posthog.captureException(err, {
+        'error_location': 'useUpdateEvent'
+      })
+      throw new Error('Error updating event');
+    }
+  }
+
+  return { updateEvent };
+}
+
+// create a hook to delete an event and all its related data
+export function useDeleteEvent() {
+  async function deleteEvent(eventId: string): Promise<void> {
+    try {
+      // Delete all matches in the subcollection
+      const matchesRef = collection(
+        db,
+        CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+        eventId,
+        CONSTANTS.FIREBASE_COLLECTIONS.MATCHES
+      );
+      const matchesSnapshot = await getDocs(matchesRef);
+      const matchDeletePromises = matchesSnapshot.docs.map((doc) =>
+        deleteDoc(doc.ref)
+      );
+      await Promise.all(matchDeletePromises);
+
+      // Delete all participants in the subcollection
+      const participantsRef = collection(
+        db,
+        CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+        eventId,
+        CONSTANTS.FIREBASE_COLLECTIONS.PARTICIPANTS
+      );
+      const participantsSnapshot = await getDocs(participantsRef);
+      const participantDeletePromises = participantsSnapshot.docs.map((doc) =>
+        deleteDoc(doc.ref)
+      );
+      await Promise.all(participantDeletePromises);
+
+      // Finally, delete the event itself
+      const eventDocRef = doc(db, CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS, eventId);
+      await deleteDoc(eventDocRef);
+    } catch (err) {
+      posthog.captureException(err, {
+        'error_location': 'useDeleteEvent',
+        'event_id': eventId
+      })
+      throw new Error('Error deleting event');
+    }
+  }
+
+  return { deleteEvent };
 }
 
 // Create a similar hook for a single event
