@@ -1,4 +1,5 @@
 import TournamentDetailContainer from "./components/tournament-detail/container";
+import AuthLayout from "@/components/auth/AuthLayout";
 
 export default async function TournamentPage({
   params,
@@ -7,5 +8,9 @@ export default async function TournamentPage({
 }) {
   const { tournament } = await params;
 
-  return <TournamentDetailContainer tournamentId={tournament} />;
+  return (
+    <AuthLayout>
+      <TournamentDetailContainer tournamentId={tournament} />
+    </AuthLayout>
+  );
 }

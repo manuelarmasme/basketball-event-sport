@@ -9,6 +9,7 @@ import { Trophy, ArrowLeft } from "lucide-react";
 import TournamentBracket from "./components/TournamentBracket";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import AuthLayout from "@/components/auth/AuthLayout";
 
 export default function MatchesPage() {
   const params = useParams();
@@ -18,19 +19,25 @@ export default function MatchesPage() {
   const { matches, loading: matchesLoading } = useMatches(tournamentId);
 
   if (eventLoading || matchesLoading) {
-    return <Loading message="Cargando torneo..." />;
+    return (
+      <AuthLayout>
+        <Loading message="Cargando torneo..." />
+      </AuthLayout>
+    );
   }
 
   if (!event) {
     return (
-      <div className="container mx-auto p-4">
-        <Empty>
-          <EmptyMedia>
-            <Trophy className="w-16 h-16 text-muted-foreground" />
-          </EmptyMedia>
-          <EmptyTitle>Torneo no encontrado</EmptyTitle>
-        </Empty>
-      </div>
+      <AuthLayout>
+        <div className="container mx-auto p-4">
+          <Empty>
+            <EmptyMedia>
+              <Trophy className="w-16 h-16 text-muted-foreground" />
+            </EmptyMedia>
+            <EmptyTitle>Torneo no encontrado</EmptyTitle>
+          </Empty>
+        </div>
+      </AuthLayout>
     );
   }
 
@@ -61,68 +68,73 @@ export default function MatchesPage() {
   };
 
   return (
-    <div className="container mx-auto space-y-6">
-      {/* Header */}
-      <div className="space-y-4">
-        <Link href={`/${tournamentId}`} className="cursor-pointer">
-          <div className=" flex flex-row items-center text-sm mb-2 gap-2 text-gray-500 ">
-            <ArrowLeft className="w-4 h-4" />
-            Volver al torneo
-          </div>
-        </Link>
+    <AuthLayout>
+      <div className="container mx-auto space-y-6">
+        {/* Header */}
+        <div className="space-y-4">
+          <Link href={`/${tournamentId}`} className="cursor-pointer">
+            <div className=" flex flex-row items-center text-sm mb-2 gap-2 text-gray-500 ">
+              <ArrowLeft className="w-4 h-4" />
+              Volver al torneo
+            </div>
+          </Link>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-              <Trophy className="w-8 h-8" />
-              {event.name}
-            </h1>
-            <Badge variant="outline" className={getStatusColor()}>
-              {getStatusLabel()}
-            </Badge>
-          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
+                <Trophy className="w-8 h-8" />
+                {event.name}
+              </h1>
+              <Badge variant="outline" className={getStatusColor()}>
+                {getStatusLabel()}
+              </Badge>
+            </div>
 
-          {event.event_winner && (
-            <Card className="w-fit">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Trophy className="w-6 h-6 text-yellow-500" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Campeón</p>
-                    <p className="font-bold text-lg">
-                      {event.event_winner.name}
-                    </p>
+            {event.event_winner && (
+              <Card className="w-fit">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Trophy className="w-6 h-6 text-yellow-500" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Campeón</p>
+                      <p className="font-bold text-lg">
+                        {event.event_winner.name}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Tournament Bracket */}
-      {matches.length === 0 ? (
-        <Card>
-          <CardContent className="p-8">
-            <Empty>
-              <EmptyMedia>
-                <Trophy className="w-16 h-16 text-muted-foreground" />
-              </EmptyMedia>
-              <EmptyTitle>No hay partidos disponibles</EmptyTitle>
-              <p className="text-sm text-muted-foreground mt-2">
-                El torneo aún no ha comenzado. Los partidos aparecerán aquí una
-                vez que se inicie el torneo.
-              </p>
-            </Empty>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="p-6">
-            <TournamentBracket matches={matches} tournamentId={tournamentId} />
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        {/* Tournament Bracket */}
+        {matches.length === 0 ? (
+          <Card>
+            <CardContent className="p-8">
+              <Empty>
+                <EmptyMedia>
+                  <Trophy className="w-16 h-16 text-muted-foreground" />
+                </EmptyMedia>
+                <EmptyTitle>No hay partidos disponibles</EmptyTitle>
+                <p className="text-sm text-muted-foreground mt-2">
+                  El torneo aún no ha comenzado. Los partidos aparecerán aquí
+                  una vez que se inicie el torneo.
+                </p>
+              </Empty>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <TournamentBracket
+                matches={matches}
+                tournamentId={tournamentId}
+              />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </AuthLayout>
   );
 }

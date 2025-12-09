@@ -7,6 +7,7 @@ import { Loading } from "@/components/ui/loading";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import AuthLayout from "@/components/auth/AuthLayout";
 
 export default function Users() {
   const { invitations, loading, error } = useInvitations();
@@ -32,30 +33,32 @@ export default function Users() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col justify-between mb-6">
-          <Link href={`/`} className="cursor-pointer">
-            <div className=" flex flex-row items-center text-sm mb-2 gap-2 text-gray-500 ">
-              <ArrowLeft className="w-4 h-4" />
-              Volver al inicio
+    <AuthLayout>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col justify-between mb-6">
+            <Link href={`/`} className="cursor-pointer">
+              <div className=" flex flex-row items-center text-sm mb-2 gap-2 text-gray-500 ">
+                <ArrowLeft className="w-4 h-4" />
+                Volver al inicio
+              </div>
+            </Link>
+            <div className="flex flex-row justify-between w-full">
+              <div className="flex flex-col">
+                <h1 className="text-3xl font-bold">Usuarios</h1>
+                <p className="text-gray-400 mt-1">
+                  Gestiona las invitaciones de usuarios al sistema
+                </p>
+              </div>
+              <InviteUserDialog />
             </div>
-          </Link>
-          <div className="flex flex-row justify-between w-full">
-            <div className="flex flex-col">
-              <h1 className="text-3xl font-bold">Usuarios</h1>
-              <p className="text-gray-400 mt-1">
-                Gestiona las invitaciones de usuarios al sistema
-              </p>
-            </div>
-            <InviteUserDialog />
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent>
-        <InvitationsList invitations={invitations} />
-      </CardContent>
-    </Card>
+        <CardContent>
+          <InvitationsList invitations={invitations} />
+        </CardContent>
+      </Card>
+    </AuthLayout>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -14,12 +14,22 @@ import {
   CardContent,
   CardHeader,
 } from "@/components/ui/card";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { Spinner } from "@/components/ui/spinner";
 
 function AcceptInvitationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
   const [isLoading, setIsLoading] = useState(false);
+  const { user, loading } = useAuth();
+
+  // Redirect authenticated users to home
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/");
+    }
+  }, [user, loading, router]);
 
   async function handleGoogleSignIn() {
     if (!token) {
@@ -74,6 +84,20 @@ function AcceptInvitationContent() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  // Don't show form if already authenticated (will redirect)
+  if (user) {
+    return null;
   }
 
   return (
