@@ -2,20 +2,63 @@
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { Loading } from "@/components/ui/loading";
-import { useEvents } from "@/lib/hooks/useEvents";
+import { useEvents, useDeleteEvent } from "@/lib/hooks/useEvents";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { Calendar, Clock, List } from "lucide-react";
-import { TournamentStatus } from "@/lib/types/tournament";
+import { Calendar, Clock, List, Users } from "lucide-react";
+import { TournamentStatus, SportEvent } from "@/lib/types/tournament";
 import { formatFirebaseTimestampToShowDateTime } from "@/lib/utils/dates";
 import { Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getEventStatusValue } from "@/lib/config/constant";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import FabButton from "./FabButton";
+import { EventActions } from "./EventActions";
+import { EditEventDialog } from "./EditEventDialog";
+import { DeleteEventDialog } from "./DeleteEventDialog";
+import { toast } from "sonner";
+import { useState } from "react";
+import posthog from "posthog-js";
 
 export function EventsList() {
   const { events, loading, error } = useEvents();
+  const { deleteEvent } = useDeleteEvent();
   const router = useRouter();
+  const [editingEvent, setEditingEvent] = useState<SportEvent | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [deletingEvent, setDeletingEvent] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const handleEdit = (eventId: string) => {
+    const event = events.find((e) => e.id === eventId);
+    if (event) {
+      setEditingEvent(event);
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleDelete = (eventId: string, eventName: string) => {
+    setDeletingEvent({ id: eventId, name: eventName });
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async (eventId: string) => {
+    try {
+      await deleteEvent(eventId);
+      toast.success("Evento eliminado exitosamente");
+      posthog.capture("event_deleted", { event_id: eventId });
+    } catch (error) {
+      posthog.captureException(error, {
+        context: "EventsList handleConfirmDelete",
+      });
+      toast.error("Error al eliminar el evento. Inténtalo de nuevo.");
+      throw error;
+    }
+  };
 
   if (loading) return <Loading message="Cargando eventos..." />;
 
@@ -42,22 +85,34 @@ export function EventsList() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight">
-          Eventos Deportivos
-        </h1>
-      </div>
-
       <Card className="w-full">
         <CardHeader>
-          <div className="flex flex-row items-center gap-2">
-            <List className="w-4 h-4 text-primary " />
-            <h2 className="text-lg font-semibold">Lista de Eventos</h2>
-          </div>
+          <div className="flex flex-row justify-between w-full">
+            <div>
+              <div className="flex flex-row items-center gap-2">
+                <List className="w-6 h-6 text-primary " />
+                <h1 className="text-2xl font-semibold">Lista de Eventos</h1>
+              </div>
 
-          <p>
-            Gestiona y supervisa todos tus eventos deportivos desde este panel.
-          </p>
+              <p>
+                Gestiona y supervisa todos tus eventos deportivos desde este
+                panel.
+              </p>
+            </div>
+            <div className="flex flex-row gap-4">
+              <Button
+                onClick={() => router.push("/users")}
+                size="icon"
+                variant="outline"
+                className="cursor-pointer"
+                aria-label="Manage Users"
+              >
+                <Users className="w-5 h-5" />
+              </Button>
+
+              <FabButton />
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent>
@@ -103,6 +158,13 @@ export function EventsList() {
                         <Badge className="ml-2" variant="outline">
                           Participantes: {event.config.maxParticipants}
                         </Badge>
+
+                        <EventActions
+                          eventId={event.id}
+                          eventName={event.name}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
                       </TableCell>
                     </TableRow>
                   );
@@ -112,6 +174,24 @@ export function EventsList() {
           </div>
         </CardContent>
       </Card>
+
+      {editingEvent && (
+        <EditEventDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          event={editingEvent}
+        />
+      )}
+
+      {deletingEvent && (
+        <DeleteEventDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          eventId={deletingEvent.id}
+          eventName={deletingEvent.name}
+          onConfirm={handleConfirmDelete}
+        />
+      )}
     </div>
   );
 }

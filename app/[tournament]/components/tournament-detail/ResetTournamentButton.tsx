@@ -14,23 +14,21 @@ import { RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { resetAndGenerateTournamentBracket } from "@/lib/actions/tournament";
 import { MatchPlayer } from "@/lib/types/tournament";
-import { useRouter } from "next/dist/client/components/navigation";
 import posthog from "posthog-js";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 interface ResetTournamentButtonProps {
   tournamentId: string;
   participants: MatchPlayer[];
-  onStartResetting: () => void;
 }
 
 export default function ResetTournamentButton({
   tournamentId,
   participants,
-  onStartResetting,
 }: ResetTournamentButtonProps) {
   const [open, setOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const router = useRouter();
+  const { user } = useAuth();
 
   const handleReset = async () => {
     if (participants.length < 2) {
@@ -42,31 +40,21 @@ export default function ResetTournamentButton({
 
     try {
       setIsResetting(true);
-      onStartResetting();
 
-      const result = await resetAndGenerateTournamentBracket(
+      await resetAndGenerateTournamentBracket(
         tournamentId,
         participants,
-        "current-user" // You might want to pass the actual user ID
+        user?.uid as string // You might want to pass the actual user ID
       );
 
-      if (result.success) {
-        toast.success(
-          `Torneo reiniciado exitosamente. ${result.matchCount} partidos generados.`
-        );
-        setOpen(false);
-        router.push(`${tournamentId}/matches`);
-      }
+      setOpen(false);
     } catch (error) {
       toast.error("Error al reiniciar el torneo. Por favor, intenta de nuevo.");
       posthog.captureException(error, {
         location: "ResetTournamentButton.handleReset",
       });
-
-      router.push(`${tournamentId}`);
     } finally {
       setIsResetting(false);
-      onStartResetting();
     }
   };
 
