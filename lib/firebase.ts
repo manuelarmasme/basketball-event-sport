@@ -10,6 +10,7 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
 } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
 import { CONSTANTS } from './config/constant';
 
 // Firebase configuration from environment variables
@@ -47,3 +48,6 @@ if (!getApps().length) {
 export const db: Firestore = initializeFirestore(app, {
   localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
 });
+
+// Initialize Firebase Auth
+export const auth: Auth = getAuth(app);

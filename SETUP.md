@@ -25,13 +25,26 @@ reskata-event-sport/
 
 ### 3. Environment Configuration
 
-**Required**: Copy `.env.local.example` to `.env.local` and fill in your Firebase credentials:
+**Required**: Copy `.env.example` to `.env` and fill in your credentials:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env
 ```
 
-Get your credentials from: [Firebase Console](https://console.firebase.google.com/) → Project Settings → General → Your apps
+#### Firebase Client SDK
+Get these from: [Firebase Console](https://console.firebase.google.com/) → Project Settings → General → Your apps
+
+#### Firebase Admin SDK (for User Invitations)
+**IMPORTANT**: Place `google-admin.json` in `app/api/` directory:
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Project Settings → Service Accounts
+3. Click "Generate New Private Key"
+4. Save the downloaded JSON file as `app/api/google-admin.json`
+
+⚠️ **SECURITY**: This file is automatically ignored by git. Never commit it to version control!
+
+The app will automatically use this file for Firebase Admin SDK operations (custom claims, user management).
 
 ### 4. Type Definitions
 

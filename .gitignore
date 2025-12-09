@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env
 
+# Firebase Admin SDK service account (NEVER COMMIT THIS!)
+google-admin.json
+**/google-admin.json
+app/api/google-admin.json
+
 # vercel
 .vercel
 
