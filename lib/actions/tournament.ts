@@ -276,7 +276,7 @@ export async function resetAndGenerateTournamentBracket(
   tournamentId: string,
   participants: MatchPlayer[],
   userId: string
-): Promise<{ success: boolean; matchCount: number; tournamentId: string }> {
+): Promise<void> {
   if (participants.length < 2) {
     throw new Error('Tournament requires at least 2 participants to start');
   }
@@ -299,12 +299,21 @@ export async function resetAndGenerateTournamentBracket(
 
     await deleteBatch.commit();
 
-    // 2. Generate and save new bracket
-    return await generateAndSaveTournamentBracket(
-      tournamentId,
-      participants,
-      userId
+    // 2. update tournament status to 'registration'
+    const tournamentRef = doc(
+      db,
+      CONSTANTS.FIREBASE_COLLECTIONS.TOURNAMENTS,
+      tournamentId
     );
+
+    await updateDoc(tournamentRef, {
+      status: 'registration',
+      updatedAt: Timestamp.now(),
+      updatedBy: userId,
+    });
+
+
+
   } catch (error) {
     posthog.captureException(error, {
       error_location: 'resetAndGenerateTournamentBracket',

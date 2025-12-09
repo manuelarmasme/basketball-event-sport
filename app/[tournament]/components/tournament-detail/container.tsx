@@ -89,7 +89,6 @@ export default function TournamentDetailContainer({
                 <ResetTournamentButton
                   tournamentId={tournamentId}
                   participants={matchParticipants as MatchPlayer[]}
-                  onStartResetting={() => setIsCreatingTournament(true)}
                 />
               )}
               {event?.status === "registration" && (

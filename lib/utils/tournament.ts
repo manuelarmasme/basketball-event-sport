@@ -11,21 +11,7 @@ import { Match, MatchPlayer } from '../types/tournament';
  *
  * @param participants - Array of enrolled players
  * @returns Array of Match objects representing the complete bracket (only matches with 2 players)
- *
- * @example
- * // 15 participants → 16-slot bracket
- * // - First round: 7 matches (14 players compete)
- * // - Byes: 1 player skips to Round 2 (no walkover match created)
- * // - Round 2: 8 players (7 winners + 1 bye)
- *
- * // 74 participants → 128-slot bracket
- * // - First round: 10 matches (20 players compete)
- * // - Byes: 54 players skip to Round 2 (no walkover matches)
- * // - Round 2: 64 players (10 winners + 54 byes)
- *
- * // 8 participants → 8-slot bracket (perfect power of 2)
- * // - First round: 4 matches (all 8 players compete)
- * // - No byes needed
+ * @throws Error if participants are less than 2
  */
 export function generateTournamentBracket(
   participants: MatchPlayer[]
