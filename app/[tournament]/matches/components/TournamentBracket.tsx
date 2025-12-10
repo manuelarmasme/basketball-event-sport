@@ -3,7 +3,6 @@
 import { Match } from "@/lib/types/tournament";
 import { useMemo } from "react";
 import MatchCard from "./MatchCard";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import RoundHeader from "./RoundHeader";
 
 interface TournamentBracketProps {
@@ -52,28 +51,26 @@ export default function TournamentBracket({
 
   return (
     <div className="w-full">
-      <ScrollArea className="h-[calc(100vh-300px)]">
-        <div className="space-y-6 pb-4">
-          {rounds.map((round, index) => (
-            <div key={index} className="space-y-3">
-              <RoundHeader
-                name={round.roundName}
-                matchCount={round.matches.length}
-              />
+      <div className="space-y-6 pb-4">
+        {rounds.map((round, index) => (
+          <div key={index} className="space-y-3">
+            <RoundHeader
+              name={round.roundName}
+              matchCount={round.matches.length}
+            />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {round.matches.map((match) => (
-                  <MatchCard
-                    key={match.id}
-                    match={match}
-                    tournamentId={tournamentId}
-                  />
-                ))}
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {round.matches.map((match) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  tournamentId={tournamentId}
+                />
+              ))}
             </div>
-          ))}
-        </div>
-      </ScrollArea>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

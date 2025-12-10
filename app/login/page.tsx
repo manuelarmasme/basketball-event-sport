@@ -15,30 +15,54 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const { user, loading } = useAuth();
 
-  // Redirect authenticated users to home
+  // Redirect authenticated users to home only if not currently verifying
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !isVerifying) {
       router.push("/");
     }
-  }, [user, loading, router]);
+  }, [user, loading, isVerifying, router]);
 
   async function handleGoogleSignIn() {
     setIsLoading(true);
+    setIsVerifying(true);
 
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
 
+      // Verify user has access (invited users only)
+      const verifyResponse = await fetch("/api/verify-user-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uid: result.user.uid,
+          email: result.user.email,
+        }),
+      });
+
+      const verifyData = await verifyResponse.json();
+
+      if (!verifyResponse.ok || !verifyData.hasAccess) {
+        // User was deleted by API, sign out locally
+        await auth.signOut();
+        toast.error(verifyData.error || "No tienes acceso a esta aplicación");
+        setIsVerifying(false);
+        return;
+      }
+
       toast.success(`Bienvenido, ${result.user.displayName || "Usuario"}`);
 
       // Redirect to original page or home
       const redirect = searchParams.get("redirect") || "/";
+      setIsVerifying(false);
       router.push(redirect);
     } catch (error) {
       console.error("Error signing in:", error);
       toast.error("Error al iniciar sesión con Google");
+      setIsVerifying(false);
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +78,7 @@ function LoginForm() {
   }
 
   // Don't show login form if already authenticated (will redirect)
-  if (user) {
+  if (user && !isVerifying) {
     return null;
   }
 
@@ -67,21 +91,32 @@ function LoginForm() {
               Iniciar Sesión
             </h1>
             <p className="text-muted-foreground">
-              Accede a tu cuenta para continuar
+              {isVerifying
+                ? "Verificando tu acceso..."
+                : "Accede a tu cuenta para continuar"}
             </p>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <Button
-            onClick={handleGoogleSignIn}
-            disabled={isLoading}
-            variant="outline"
-            className="w-full h-12 gap-3 cursor-pointer"
-          >
-            <Google className="w-5 h-5" />
-            {isLoading ? "Iniciando sesión..." : "Continuar con Google"}
-          </Button>
+          {isVerifying ? (
+            <div className="flex flex-col items-center justify-center py-8 space-y-4">
+              <Spinner />
+              <p className="text-sm text-muted-foreground">
+                Validando tu invitación...
+              </p>
+            </div>
+          ) : (
+            <Button
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full h-12 gap-3 cursor-pointer"
+            >
+              <Google className="w-5 h-5" />
+              {isLoading ? "Iniciando sesión..." : "Continuar con Google"}
+            </Button>
+          )}
 
           <p className="text-xs text-center text-muted-foreground">
             Al continuar, aceptas nuestros términos de servicio y política de
