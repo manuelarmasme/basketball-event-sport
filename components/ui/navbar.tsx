@@ -26,7 +26,7 @@ export default function NavBar() {
 
       {!loading && isAuthenticated && (
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-300">
+          <span className="hidden md:block text-sm text-gray-300">
             {user?.displayName || user?.email}
           </span>
           <Button
