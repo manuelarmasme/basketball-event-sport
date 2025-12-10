@@ -13,18 +13,18 @@ export default function NavBar() {
   // Check if user is being verified
   useEffect(() => {
     const checkVerification = () => {
-      setIsVerifying(localStorage.getItem('isVerifyingAccess') === 'true');
+      setIsVerifying(localStorage.getItem("isVerifyingAccess") === "true");
     };
-    
+
     checkVerification();
-    
+
     // Listen for storage changes
-    window.addEventListener('storage', checkVerification);
+    window.addEventListener("storage", checkVerification);
     // Also check periodically in case same-tab changes
     const interval = setInterval(checkVerification, 100);
-    
+
     return () => {
-      window.removeEventListener('storage', checkVerification);
+      window.removeEventListener("storage", checkVerification);
       clearInterval(interval);
     };
   }, []);

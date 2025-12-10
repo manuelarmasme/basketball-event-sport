@@ -29,7 +29,7 @@ function LoginForm() {
     setIsLoading(true);
     setIsVerifying(true);
     // Set flag in localStorage to prevent navbar from showing
-    localStorage.setItem('isVerifyingAccess', 'true');
+    localStorage.setItem("isVerifyingAccess", "true");
 
     try {
       const provider = new GoogleAuthProvider();
@@ -50,7 +50,7 @@ function LoginForm() {
       if (!verifyResponse.ok || !verifyData.hasAccess) {
         // User was deleted by API, sign out locally
         await auth.signOut();
-        localStorage.removeItem('isVerifyingAccess');
+        localStorage.removeItem("isVerifyingAccess");
         toast.error(verifyData.error || "No tienes acceso a esta aplicación");
         setIsVerifying(false);
         return;
@@ -59,13 +59,13 @@ function LoginForm() {
       toast.success(`Bienvenido, ${result.user.displayName || "Usuario"}`);
 
       // Redirect to original page or home
-      localStorage.removeItem('isVerifyingAccess');
+      localStorage.removeItem("isVerifyingAccess");
       const redirect = searchParams.get("redirect") || "/";
       setIsVerifying(false);
       router.push(redirect);
     } catch (error) {
       console.error("Error signing in:", error);
-      localStorage.removeItem('isVerifyingAccess');
+      localStorage.removeItem("isVerifyingAccess");
       toast.error("Error al iniciar sesión con Google");
       setIsVerifying(false);
     } finally {
