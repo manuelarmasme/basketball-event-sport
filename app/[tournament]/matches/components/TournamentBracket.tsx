@@ -3,7 +3,6 @@
 import { Match } from "@/lib/types/tournament";
 import { useMemo } from "react";
 import MatchCard from "./MatchCard";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import RoundHeader from "./RoundHeader";
 
 interface TournamentBracketProps {
