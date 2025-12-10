@@ -7,11 +7,11 @@ const nextConfig: NextConfig = {
     return [
       {
         // El camino que tu app recibe (el manejador de Firebase)
-        source: "/__/auth/handler",
+        source: "/__/auth/:path*",
 
         // El destino real que debe manejar Firebase Hosting
         // La URL debe coincidir con el projectId de tus variables de entorno.
-        destination: `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseapp.com/__/auth/handler`,
+        destination: `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseapp.com/__/auth/:path*`,
       },
       {
         source: "/ingest/static/:path*",
