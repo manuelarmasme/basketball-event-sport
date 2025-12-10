@@ -130,8 +130,19 @@ export function EventsList() {
                       className="cursor-pointer flex flex-row justify-between items-center"
                       onClick={() => router.push(`/${event.id}`)}
                     >
-                      <TableCell className="font-medium flex flex-col gap-2">
-                        <h3 className="text-white text-xl">{event.name}</h3>
+                      <TableCell className="font-medium flex flex-col gap-2 w-full">
+                        <div className="flex fle-row w-full justify-between">
+                          <h3 className="text-white text-xl">{event.name}</h3>
+
+                          <div className="md:hidden">
+                            <EventActions
+                              eventId={event.id}
+                              eventName={event.name}
+                              onEdit={handleEdit}
+                              onDelete={handleDelete}
+                            />
+                          </div>
+                        </div>
                         <span className="text-lg flex flex-row items-center gap-2 text-sm text-gray-400">
                           <Clock className="w-4 h-4" />
                           {formatFirebaseTimestampToShowDateTime(
