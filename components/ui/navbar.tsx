@@ -12,7 +12,7 @@ export default function NavBar() {
     <header
       className={
         isAuthenticated
-          ? "flex items-center justify-between px-4 "
+          ? "flex items-center justify-between px-4"
           : "dark flex w-full justify-center items-center px-4"
       }
     >
