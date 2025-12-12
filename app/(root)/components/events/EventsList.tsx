@@ -20,6 +20,7 @@ import { DeleteEventDialog } from "./DeleteEventDialog";
 import { toast } from "sonner";
 import { useState } from "react";
 import posthog from "posthog-js";
+import { Empty, EmptyContent, EmptyMedia } from "@/components/ui/empty";
 
 export function EventsList() {
   const { events, loading, error } = useEvents();
@@ -74,12 +75,27 @@ export function EventsList() {
 
   if (events.length === 0) {
     return (
-      <EmptyState
-        icon={Calendar}
-        message="No hay eventos disponibles en este momento."
-        ctaText="Crear Evento"
-        ctaAction={() => console.log("create")}
-      />
+      <Empty>
+        <EmptyMedia>
+          <Calendar className="w-16 h-16 text-muted-foreground" />
+        </EmptyMedia>
+
+        <EmptyContent>
+          <h2 className="text-xl font-semibold">No hay eventos disponibles</h2>
+          <p className="text-sm text-muted-foreground">
+            Parece que aún no has creado ningún evento. ¡Comienza creando uno
+            ahora!
+          </p>
+
+          <FabButton text="Crear Evento" />
+        </EmptyContent>
+      </Empty>
+      // <EmptyState
+      //   icon={Calendar}
+      //   message="No hay eventos disponibles en este momento."
+      //   ctaText="Crear Evento"
+      //   ctaAction={() => console.log("create")}
+      // />
     );
   }
 

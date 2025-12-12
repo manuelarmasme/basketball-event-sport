@@ -13,7 +13,7 @@ import {
 import { useState } from "react";
 import { CreateEventForm } from "./CreateEventForm";
 
-export default function FabButton() {
+export default function FabButton({ text }: { text?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -22,7 +22,7 @@ export default function FabButton() {
         <DialogTrigger asChild>
           <Button
             variant="secondary"
-            size="icon"
+            size={text ? "default" : "icon"}
             aria-label="Submit"
             className=" cursor-pointer shadow-lg hover:shadow-xl focus:shadow-xl transition-shadow"
           >
@@ -30,6 +30,7 @@ export default function FabButton() {
               className="size-8 text-muted-foreground/50 text-primary "
               strokeWidth={1.5}
             />
+            {text ? text : ""}
           </Button>
         </DialogTrigger>
 
